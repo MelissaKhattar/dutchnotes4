@@ -1,449 +1,329 @@
-import { useState, useEffect } from 'react';
-import { Sparkles, Library, Send, Repeat, Check, X, ChevronDown } from 'lucide-react';
-
-// Main App component
-const App = () => {
-  const [view, setView] = useState('notes'); // 'notes' or 'quiz'
-  const [quizQuestions, setQuizQuestions] = useState([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [correctAnswer, setCorrectAnswer] = useState(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  // All your notes data
-  const notesData = {
-    august7: {
-      title: "Donderdag 7 Augustus",
-      sections: [
-        {
-          heading: "Emoties & Persoonsbeschrijving",
-          items: [
-            { text: "Samen (niet zamen)", translation: "Together" },
-            { text: "Gek denken bestaat niet.", translation: "The phrase 'thinking crazy' doesn't exist." },
-            { text: "Je bent gek.", translation: "You are crazy." },
-            { text: "Wina had een gek plan / een rare gedachte hebben / deed iets raars.", translation: "Wina had a crazy plan / had a strange thought / did something strange." },
-            { text: "Geloven", translation: "To believe" },
-            { text: "Beleven = Meemaken", translation: "To experience" },
-            { text: "Verkouden", translation: "To have a cold" },
-            { text: "ZELFS als ik me beter VOEL", translation: "EVEN if I feel better" },
-          ]
-        },
-        {
-          heading: "Tijd & Handelingen",
-          items: [
-            { text: "Tijdens het koken", translation: "During the cooking" },
-            { text: "Terwijl ik kook", translation: "While I cook" },
-            { text: "DOE IK de afzuigkap aan", translation: "I turn on the extractor fan." },
-            { text: "Morgen ga ik het ervan NEMEN.", translation: "Tomorrow I'm going to make the most of it." },
-            { text: "Ik vind het niet leuk OM naar een begrafenis te gaan.", translation: "I don't like to go to a funeral." },
-            { text: "Ik hou niet van begrafenissen.", translation: "I don't like funerals." },
-            { text: "Wisselvallig weer", translation: "Changeable weather" },
-            { text: "Dat betekent", translation: "That means" },
-            { text: "Het wisselt continu.", translation: "It changes constantly." },
-            { text: "Niet storen", translation: "Do not disturb" },
-            { text: "Er vandoor gaan", translation: "To leave / to escape" },
-            { text: "Een bezoek BIJ zijn oom (of met)", translation: "A visit AT his uncle's place (or with)" },
-            { text: "Hij reed", translation: "He drove" },
-            { text: "Opgehaald", translation: "Picked up" },
-            { text: "Succes met de twee vluchten.", translation: "Good luck with the two flights." },
-          ]
-        },
-        {
-          heading: "Plaatsen & Objecten",
-          items: [
-            { text: "Steden - Stad", translation: "Cities / City" },
-            { text: "Podium", translation: "Stage" },
-            { text: "Kroeg", translation: "Cafe - Pub" },
-            { text: "Waar niemand hen hoort, kent of stoort.", translation: "Where no one hears, knows, or disturbs them." },
-            { text: "Een goed excuus", translation: "A good excuse" },
-          ]
-        },
-        {
-          heading: "Diversen",
-          items: [
-            { text: "Inschakelen", translation: "To arrange and call someone" },
-            { text: "Wildvreemd", translation: "Completely unknown" },
-            { text: "Even oud", translation: "The same age" },
-            { text: "Succes", translation: "Success" },
-            { text: "Dit betekent / Dat betekent", translation: "This means / That means" },
-          ]
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nederlandse Studie-App 🇳🇱</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
         }
-      ]
-    },
-    august11: {
-      title: "Maandag 11 Augustus",
-      sections: [
-        {
-          heading: "De vier werkwoorden voor spreken",
-          items: [
-            { text: "Praten (informeel gesprek)", translation: "To talk, converse" },
-            { text: "Zeggen (specifieke uitspraak)", translation: "To say, tell" },
-            { text: "Vertellen (uitgebreide informatie)", translation: "To tell a story or give detailed information" },
-            { text: "Spreken (formeler dan praten, taalbeheersing)", translation: "To speak" },
-          ]
-        },
-        {
-          heading: "Plaatsen & Geografie",
-          items: [
-            { text: "HET park", translation: "The park" },
-            { text: "In Libanon, IS HET…", translation: "In Lebanon, it is…" },
-            { text: "Langs", translation: "Along" },
-            { text: "ZIJN ER veel meren", translation: "Are there many lakes" },
-            { text: "De plattegrond", translation: "The map" },
-            { text: "Een riool", translation: "A sewer" },
-            { text: "Het ongeluk was in het zuiden", translation: "The accident was in the south" },
-            { text: "De plek", translation: "The place" },
-            { text: "Groot bos", translation: "Large forest" },
-            { text: "Wenen", translation: "Vienna" },
-          ]
-        },
-        {
-          heading: "Tijd & Frequenties",
-          items: [
-            { text: "We begonnen om 2 uur.", translation: "We started at 2 o’clock." },
-            { text: "Tijdens de rest van de dag", translation: "During the rest of the day" },
-            { text: "Niet ZO vaak", translation: "Not SO often" },
-            { text: "Wanneer ik een …. KOOP", translation: "When I buy a…" },
-            { text: "Het voorjaar - Lente", translation: "Spring" },
-            { text: "Najaar - Herfst", translation: "Autumn" },
-            { text: "Vorig jaar BEN IK naar Wenen met de trein gegaan.", translation: "Last year I went to Vienna by train." },
-          ]
-        },
-        {
-          heading: "Mensen & Personen",
-          items: [
-            { text: "HIJ (neef)", translation: "He (cousin)" },
-            { text: "Zij (nicht)", translation: "She (cousin)" },
-            { text: "Een passagier", translation: "A passenger" },
-            { text: "Ze waren in de war", translation: "They were confused" },
-            { text: "Lost - Kwijt", translation: "Lost - disappeared" },
-          ]
-        },
-        {
-          heading: "Acties & Gebeurtenissen",
-          items: [
-            { text: "We hebben samen ontbeten, …", translation: "We had breakfast together" },
-            { text: "We ontbeten.", translation: "We had breakfast." },
-            { text: "Stofzuigen", translation: "To vacuum" },
-            { text: "Vandaag heb ik IN het park gechillt.", translation: "Today I chilled IN the park." },
-            { text: "Na een hele sterke regenbui", translation: "After a very heavy rain shower" },
-            { text: "Bereiken", translation: "To reach" },
-            { text: "Was ontspoord", translation: "Had derailed" },
-            { text: "Er zijn 3 mensen omgekomen en 40 gewond geraakt.", translation: "3 people died and 40 were injured." },
-            { text: "Waardoor - Doordat", translation: "Because of what? - Because" },
-            { text: "Zijn - gebracht", translation: "Are - brought" },
-            { text: "Weg te takelen", translation: "To tow away" },
-          ]
-        },
-        {
-          heading: "Diversen & Grammatica",
-          items: [
-            { text: "Regels", translation: "Rules" },
-            { text: "Dit recept", translation: "This recipe" },
-            { text: "Zelf gebruik ik het nooit.", translation: "I myself never use it." },
-            { text: "Asperge (franse uitspraak)", translation: "Asparagus (French pronunciation)" },
-            { text: "Asperger (a disease; with the ‘g’)", translation: "Asperger" },
-          ]
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
         }
-      ]
-    },
-    extra: {
-      title: "Extra: Vruchten & Groenten",
-      sections: [
-        {
-          heading: "Vruchten 🍎",
-          items: [
-            { text: "De mango", translation: "A sweet, juicy fruit used in tropical dishes." },
-            { text: "De ananas", translation: "A large, tropical fruit with a sweet and fresh taste." },
-            { text: "De kiwi", translation: "A small, oval fruit with a hairy peel and green flesh." },
-            { text: "De granaatappel", translation: "A round fruit filled with juicy, ruby-red seeds." },
-            { text: "De avocado", translation: "Often seen as a vegetable, but botanically a fruit." },
-            { text: "De vijg", translation: "A soft, sweet fruit with many small seeds." },
-            { text: "De lychee", translation: "A small, exotic fruit with a pink peel and a sweet, juicy inside." },
-            { text: "De papaja", translation: "A large, tropical fruit with orange flesh and a sweet taste." },
-            { text: "De passievrucht", translation: "A purple fruit with a hard peel and jelly-like flesh with seeds." },
-            { text: "De kaki", translation: "An orange fruit that looks like a tomato and is only edible when soft." },
-            { text: "De braam", translation: "A small, dark fruit that grows on a bush." },
-            { text: "De bosbes", translation: "A small, blue berry with a slightly sweet taste." },
-            { text: "De framboos", translation: "A delicate, red berry." },
-          ]
-        },
-        {
-          heading: "Groenten 🥦",
-          items: [
-            { text: "De artisjok", translation: "A plant whose flower bud is eaten." },
-            { text: "De asperge", translation: "A long, white or green vegetable." },
-            { text: "De aubergine", translation: "A purple, egg-shaped fruit often used in Mediterranean dishes." },
-            { text: "De courgette", translation: "A green, elongated vegetable." },
-            { text: "De pastinaak", translation: "A white root vegetable with a sweet, anise-like taste." },
-            { text: "De pompoen", translation: "A large, orange fruit often eaten in autumn." },
-            { text: "De prei", translation: "A long, green and white vegetable with a mild onion flavor." },
-            { text: "De radijs", translation: "A small, red and spicy root vegetable." },
-            { text: "De rucola", translation: "A type of lettuce with a peppery taste." },
-            { text: "De venkel", translation: "A root vegetable with a strong anise flavor." },
-          ]
+        .collapsible-content.open {
+            max-height: 1000px; /* A large value to ensure it's always open */
         }
-      ]
-    }
-  };
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
 
-  const allQuizQuestions = [
-    // Algemene woordenschat & grammatica
-    { question: "Wat is de correcte spelling voor 'Together'?", options: ["Zamen", "Samen", "Saamen", "Saam"], answer: "Samen" },
-    { question: "Wat betekent 'Verkouden'?", options: ["Verward zijn", "Moe zijn", "Een verkoudheid hebben", "Ziek zijn"], answer: "Een verkoudheid hebben" },
-    { question: "Welk woord is formeler: 'Praten' of 'Spreken'?", options: ["Praten", "Spreken"], answer: "Spreken" },
-    { question: "Wat is de Nederlandse vertaling voor 'apricot'?", options: ["Perzik", "Pruim", "Nectarine", "Abrikoos"], answer: "Abrikoos" },
-    { question: "Wat betekent 'Wisselvallig weer'?", options: ["Regenachtig weer", "Veranderlijk weer", "Zonnig weer", "Koud weer"], answer: "Veranderlijk weer" },
-    { question: "Welke groente heeft een zoete, anijsachtige smaak?", options: ["De prei", "De pastinaak", "De venkel", "De rucola"], answer: "De pastinaak" },
-    { question: "Het woord 'plattegrond' betekent:", options: ["De vlakke grond", "De kaart", "Een riool", "De metro"], answer: "De kaart" },
-    { question: "De zin 'thinking crazy' bestaat niet in het Nederlands. Wat is de juiste manier om zoiets te zeggen?", options: ["Gek denken", "Een gek plan hebben", "Denken gek", "Gekke gedachten"], answer: "Een gek plan hebben" },
-    { question: "Hoe zeg je 'Last year I went to Vienna by train' correct?", options: ["Laatste jaar ik ga naar Wenen met de trein.", "Vorig jaar ik ben gegaan naar Wenen met de trein.", "Vorig jaar BEN IK naar Wenen met de trein gegaan.", "Vorige jaar ik ben naar Wenen gegaan met de trein."], answer: "Vorig jaar BEN IK naar Wenen met de trein gegaan." },
-    { question: "Wat betekent 'Stofzuigen'?", options: ["Schoonmaken", "Wassen", "Stofzuigen", "Koken"], answer: "Stofzuigen" },
-    { question: "Welke vrucht wordt vaak als groente gezien, maar is botanisch gezien een vrucht?", options: ["De papaja", "De vijg", "De avocado", "De ananas"], answer: "De avocado" },
-    { question: "Wat is de correcte manier om te zeggen 'During the cooking'?", options: ["Tijdens DAT IK KOOK", "Tijdens het koken", "Terwijl dat ik kook", "Tijdens koken"], answer: "Tijdens het koken" },
-    { question: "Welk werkwoord gebruik je voor een specifieke, directe mededeling?", options: ["Praten", "Zeggen", "Vertellen", "Spreken"], answer: "Zeggen" },
-    { question: "Wat betekent 'Inschakelen'?", options: ["Aanzetten", "Uitzetten", "Iemand regelen en bellen", "Geloven"], answer: "Iemand regelen en bellen" },
-    { question: "Het woord 'Kwijt' betekent:", options: ["Verloren (verdwenen)", "Gevonden", "Bewaard", "Opgepikt"], answer: "Verloren (verdwenen)" },
-    { question: "Wat is de Nederlandse vertaling voor 'Changeable weather'?", options: ["Veranderend weer", "Wisselvallig weer", "Mooi weer", "Slecht weer"], answer: "Wisselvallig weer" },
-    { question: "Welke vrucht is eetbaar als hij zacht is en lijkt op een tomaat?", options: ["De kaki", "De braam", "De lychee", "De bosbes"], answer: "De kaki" },
-    { question: "Het Nederlandse woord voor 'Stage' is:", options: ["Toonzaal", "Scherm", "Podium", "Tribune"], answer: "Podium" },
-    { question: "Wat betekent de zin 'Morgen ga ik het ervan NEMEN'?", options: ["Ik zal het morgen nemen.", "Morgen neem ik een pauze.", "Morgen ga ik er het beste van maken.", "Ik ga morgen niet."], answer: "Morgen ga ik er het beste van maken." },
-
-    // Nieuwe vragen op basis van de notities
-    { question: "Wat is de correcte vertaling voor 'to experience'?", options: ["Geloven", "Beleven", "Winnen", "Zeggen"], answer: "Beleven" },
-    { question: "Welk woord is een synoniem voor 'meemaken'?", options: ["Vergeten", "Beleven", "Herinneren", "Praten"], answer: "Beleven" },
-    { question: "Wat betekent de uitdrukking 'Er vandoor gaan'?", options: ["Weggaan", "Binnenkomen", "Blijven", "Vallen"], answer: "Weggaan" },
-    { question: "In de zin 'een bezoek BIJ zijn oom', wat betekent 'bij'?", options: ["Met", "Naast", "Bij", "Tijdens"], answer: "Bij" },
-    { question: "Wat is het meervoud van 'Stad'?", options: ["Staden", "Steden", "Stadjes", "Stadsen"], answer: "Steden" },
-    { question: "De vrucht die aan een struik groeit en donker is, is de...", options: ["Braam", "Framboos", "Bosbes", "Pruim"], answer: "Braam" },
-    { question: "Welke groente wordt vaak gebakken of gegrild?", options: ["De prei", "De aubergine", "De courgette", "De artisjok"], answer: "De courgette" },
-    { question: "Wat is de correcte vertaling van 'He (cousin)'?", options: ["Hij (nicht)", "Zij (nicht)", "Hij (neef)", "Zij (neef)"], answer: "Hij (neef)" },
-    { question: "Wat betekent 'Wildvreemd'?", options: ["Heel oud", "Helemaal onbekend", "Erg wild", "Een vreemde wildernis"], answer: "Helemaal onbekend" },
-    { question: "Wat is een kenmerk van de 'rucola'?", options: ["Zoete smaak", "Sterke anijssmaak", "Peperachtige smaak", "Milde uiensmaak"], answer: "Peperachtige smaak" },
-    { question: "Welke vrucht heeft een harige schil?", options: ["De ananas", "De kiwi", "De lychee", "De passievrucht"], answer: "De kiwi" },
-    { question: "In de zin 'We hebben samen ontbeten', welk werkwoord wordt gebruikt?", options: ["Zeggen", "Praten", "Ontbijten", "Vertellen"], answer: "Ontbijten" },
-    { question: "Wat is de Nederlandse vertaling voor 'The map'?", options: ["De kaart", "Het kaartje", "De plattegrond", "De straten"], answer: "De plattegrond" },
-    { question: "Wat is de betekenis van 'bereiken'?", options: ["Weggaan", "Aankomen", "Bereiken", "Rijden"], answer: "Bereiken" },
-  ];
-
-  // Function to shuffle an array
-  const shuffleArray = (array) => {
-    let newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-  };
-
-  // Function to start a new quiz
-  const startNewQuiz = () => {
-    // Shuffle all questions and take a random subset
-    const shuffledQuestions = shuffleArray(allQuizQuestions);
-    const quizSubset = shuffledQuestions.slice(0, 10); // Take 10 questions
-    setQuizQuestions(quizSubset);
-    setCurrentQuestionIndex(0);
-    setScore(0);
-    setShowResult(false);
-    setSelectedAnswer(null);
-    setCorrectAnswer(null);
-    setView('quiz');
-  };
-
-  useEffect(() => {
-    startNewQuiz();
-  }, []);
-
-  // Handle user's answer selection
-  const handleAnswer = (answer) => {
-    if (selectedAnswer !== null) return; // Prevent multiple clicks
-    setIsAnimating(true);
-    setSelectedAnswer(answer);
-    const currentQuestion = quizQuestions[currentQuestionIndex];
-    const isCorrect = answer === currentQuestion.answer;
-    setCorrectAnswer(currentQuestion.answer);
-
-    if (isCorrect) {
-      setScore(prevScore => prevScore + 1);
-    }
-  };
-
-  // Move to the next question
-  const nextQuestion = () => {
-    setIsAnimating(false);
-    setSelectedAnswer(null);
-    setCorrectAnswer(null);
-
-    const nextIndex = currentQuestionIndex + 1;
-    if (nextIndex < quizQuestions.length) {
-      setCurrentQuestionIndex(nextIndex);
-    } else {
-      setShowResult(true);
-    }
-  };
-  
-  // Quiz and Notes views as inner components for clarity
-  const NotesView = () => {
-    const [openSections, setOpenSections] = useState({});
-
-    const toggleSection = (sectionHeading) => {
-      setOpenSections(prev => ({
-        ...prev,
-        [sectionHeading]: !prev[sectionHeading]
-      }));
-    };
-
-    return (
-      <div className="p-4 sm:p-8 space-y-8 animate-fade-in-up">
-        {Object.entries(notesData).map(([key, data]) => (
-          <div key={key} className="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
-            <h2 className="text-3xl font-extrabold text-blue-800 mb-4 border-b-2 border-blue-200 pb-2 flex items-center">
-              <Library className="mr-2 h-8 w-8 text-blue-500" />
-              {data.title}
-            </h2>
-            {data.sections.map((section, index) => (
-              <div key={index} className="mb-4">
-                <button
-                  onClick={() => toggleSection(section.heading)}
-                  className="w-full flex items-center justify-between text-left p-4 bg-gray-50 rounded-2xl transition-all duration-300 hover:bg-gray-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <h3 className="text-2xl font-bold text-gray-700 flex items-center">
-                    <Sparkles className="mr-2 h-6 w-6 text-yellow-500" />
-                    {section.heading}
-                  </h3>
-                  <ChevronDown className={`transform transition-transform duration-300 ${openSections[section.heading] ? 'rotate-180' : 'rotate-0'}`} />
+    <div class="container mx-auto p-4 sm:p-8">
+        <header class="flex flex-col sm:flex-row items-center justify-between p-6 bg-white rounded-3xl shadow-xl mb-8">
+            <h1 class="text-4xl font-extrabold text-blue-800 mb-4 sm:mb-0">Nederlandse Studie-App 🇳🇱</h1>
+            <div class="flex space-x-2">
+                <button id="notes-btn" class="flex items-center px-6 py-3 rounded-full font-bold transition-all duration-300 bg-blue-600 text-white shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-library mr-2"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/><path d="M20 2v-1h-4"/><path d="M20 2v-1h-4"/><path d="M4 2v1h8"/><path d="M12 6h8"/></svg>
+                    Aantekeningen
                 </button>
-                <div className={`overflow-hidden transition-max-h duration-500 ease-in-out ${openSections[section.heading] ? 'max-h-screen mt-2' : 'max-h-0'}`}>
-                  <ul className="space-y-2 p-4 bg-gray-50 rounded-2xl mt-2 border border-gray-200">
-                    {section.items.map((item, i) => (
-                      <li key={i} className="flex flex-col p-3 bg-white rounded-xl transition-all duration-300 hover:bg-gray-50 shadow-sm">
-                        <span className="text-lg font-semibold text-gray-800">{item.text}</span>
-                        <span className="text-sm italic text-gray-500 mt-1">{item.translation}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const QuizView = () => {
-    const questionData = quizQuestions[currentQuestionIndex];
-    const [shuffledOptions, setShuffledOptions] = useState([]);
-    
-    // Shuffle options once when the question changes
-    useEffect(() => {
-      if (questionData) {
-        setShuffledOptions(shuffleArray(questionData.options));
-      }
-    }, [questionData]);
-
-    if (showResult) {
-      return (
-        <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-fade-in-up">
-          <h2 className="text-5xl font-extrabold text-blue-800 mb-4">Quiz voltooid!</h2>
-          <p className="text-2xl text-gray-600 mb-8">Je score is...</p>
-          <div className="text-7xl font-black text-green-600 mb-8">{score} / {quizQuestions.length}</div>
-          <button
-            onClick={startNewQuiz}
-            className="flex items-center px-8 py-4 bg-green-600 text-white font-bold rounded-full text-xl shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 active:scale-95"
-          >
-            <Repeat className="mr-3" /> Start een nieuwe quiz
-          </button>
-        </div>
-      );
-    }
-
-    if (!questionData) {
-      return <div className="text-center p-8 text-gray-500">Quiz aan het laden...</div>;
-    }
-
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-4 sm:p-8 animate-fade-in-up">
-        <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-6 sm:p-10 border border-gray-100">
-          <div className="text-center mb-6">
-            <span className="text-lg font-bold text-blue-600">Vraag {currentQuestionIndex + 1} van {quizQuestions.length}</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-800 text-center mb-8">{questionData.question}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {shuffledOptions.map((option, index) => (
-              <button
-                key={option}
-                onClick={() => handleAnswer(option)}
-                disabled={selectedAnswer !== null}
-                className={`
-                  p-4 rounded-xl border-2 font-semibold text-lg transition-all duration-300 flex items-center justify-between text-left
-                  ${
-                    selectedAnswer === null
-                      ? 'bg-blue-50 text-blue-800 hover:bg-blue-100 hover:border-blue-300'
-                      : option === questionData.answer
-                      ? 'bg-green-100 text-green-800 border-green-500'
-                      : option === selectedAnswer && option !== questionData.answer
-                      ? 'bg-red-100 text-red-800 border-red-500'
-                      : 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
-                  }
-                `}
-              >
-                <span>{option}</span>
-                {selectedAnswer && (
-                  option === questionData.answer
-                    ? <Check className="text-green-500 ml-2" />
-                    : option === selectedAnswer
-                    ? <X className="text-red-500 ml-2" />
-                    : null
-                )}
-              </button>
-            ))}
-          </div>
-          {selectedAnswer !== null && (
-            <div className="mt-8 text-center">
-              <button
-                onClick={nextQuestion}
-                className="flex items-center mx-auto px-6 py-3 bg-blue-600 text-white font-bold rounded-full text-lg shadow-md hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 active:scale-95"
-              >
-                Volgende vraag <Send className="ml-2" />
-              </button>
+                <button id="quiz-btn" class="flex items-center px-6 py-3 rounded-full font-bold transition-all duration-300 bg-gray-100 text-gray-600 hover:bg-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles mr-2"><path d="M9.957 4.29a2 2 0 0 1 3.086 0L15.618 7.3a2 2 0 0 0 1.252.883l3.321.458a2 2 0 0 1 1.157 3.424l-2.3 2.5a2 2 0 0 0-.585 1.637l.385 3.291a2 2 0 0 1-2.908 2.112l-2.885-1.551a2 2 0 0 0-1.892 0l-2.885 1.551a2 2 0 0 1-2.908-2.112l.385-3.291a2 2 0 0 0-.585-1.637l-2.3-2.5a2 2 0 0 1 1.157-3.424l3.321-.458a2 2 0 0 0 1.252-.883z"/></svg>
+                    Start quiz
+                </button>
             </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Main layout with navigation
-  return (
-    <div className="bg-gray-50 font-sans text-gray-800 min-h-screen">
-      <div className="container mx-auto p-4 sm:p-8">
-        <header className="flex flex-col sm:flex-row items-center justify-between p-6 bg-white rounded-3xl shadow-xl mb-8">
-          <h1 className="text-4xl font-extrabold text-blue-800 mb-4 sm:mb-0">Nederlandse Studie-App 🇳🇱</h1>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setView('notes')}
-              className={`flex items-center px-6 py-3 rounded-full font-bold transition-all duration-300 ${view === 'notes' ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-            >
-              <Library className="mr-2" /> Aantekeningen
-            </button>
-            <button
-              onClick={startNewQuiz}
-              className={`flex items-center px-6 py-3 rounded-full font-bold transition-all duration-300 ${view === 'quiz' ? 'bg-green-600 text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-            >
-              <Sparkles className="mr-2" /> Start quiz
-            </button>
-          </div>
         </header>
 
-        <main>
-          {view === 'notes' ? <NotesView /> : <QuizView />}
+        <main id="app-container">
+            <!-- Content will be rendered here by JavaScript -->
         </main>
-      </div>
     </div>
-  );
-};
 
-export default App;
+    <!-- Lucide Icons CDN moved to body for proper loading -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <script>
+        // Main application logic
+        const notesData = {
+            august7: {
+                title: "Donderdag 7 Augustus",
+                sections: [
+                    { heading: "Emoties & Persoonsbeschrijving", items: [{ text: "Samen (niet zamen)", translation: "Together" }, { text: "Gek denken bestaat niet.", translation: "The phrase 'thinking crazy' doesn't exist." }, { text: "Je bent gek.", translation: "You are crazy." }, { text: "Wina had een gek plan / een rare gedachte hebben / deed iets raars.", translation: "Wina had a crazy plan / had a strange thought / did something strange." }, { text: "Geloven", translation: "To believe" }, { text: "Beleven = Meemaken", translation: "To experience" }, { text: "Verkouden", translation: "To have a cold" }, { text: "ZELFS als ik me beter VOEL", translation: "EVEN if I feel better" }] },
+                    { heading: "Tijd & Handelingen", items: [{ text: "Tijdens het koken", translation: "During the cooking" }, { text: "Terwijl ik kook", translation: "While I cook" }, { text: "DOE IK de afzuigkap aan", translation: "I turn on the extractor fan." }, { text: "Morgen ga ik het ervan NEMEN.", translation: "Tomorrow I'm going to make the most of it." }, { text: "Ik vind het niet leuk OM naar een begrafenis te gaan.", translation: "I don't like to go to a funeral." }, { text: "Ik hou niet van begrafenissen.", translation: "I don't like funerals." }, { text: "Wisselvallig weer", translation: "Changeable weather" }, { text: "Dat betekent", translation: "That means" }, { text: "Het wisselt continu.", translation: "It changes constantly." }, { text: "Niet storen", translation: "Do not disturb" }, { text: "Er vandoor gaan", translation: "To leave / to escape" }, { text: "Een bezoek BIJ zijn oom (of met)", translation: "A visit AT his uncle's place (or with)" }, { text: "Hij reed", translation: "He drove" }, { text: "Opgehaald", translation: "Picked up" }, { text: "Succes met de twee vluchten.", translation: "Good luck with the two flights." }] },
+                    { heading: "Plaatsen & Objecten", items: [{ text: "Steden - Stad", translation: "Cities / City" }, { text: "Podium", translation: "Stage" }, { text: "Kroeg", translation: "Cafe - Pub" }, { text: "Waar niemand hen hoort, kent of stoort.", translation: "Where no one hears, knows, or disturbs them." }, { text: "Een goed excuus", translation: "A good excuse" }] },
+                    { heading: "Diversen", items: [{ text: "Inschakelen", translation: "To arrange and call someone" }, { text: "Wildvreemd", translation: "Completely unknown" }, { text: "Even oud", translation: "The same age" }, { text: "Succes", translation: "Success" }, { text: "Dit betekent / Dat betekent", translation: "This means / That means" }] }
+                ]
+            },
+            august11: {
+                title: "Maandag 11 Augustus",
+                sections: [
+                    { heading: "De vier werkwoorden voor spreken", items: [{ text: "Praten (informeel gesprek)", translation: "To talk, converse" }, { text: "Zeggen (specifieke uitspraak)", translation: "To say, tell" }, { text: "Vertellen (uitgebreide informatie)", translation: "To tell a story or give detailed information" }, { text: "Spreken (formeler dan praten, taalbeheersing)", translation: "To speak" }] },
+                    { heading: "Plaatsen & Geografie", items: [{ text: "HET park", translation: "The park" }, { text: "In Libanon, IS HET…", translation: "In Lebanon, it is…" }, { text: "Langs", translation: "Along" }, { text: "ZIJN ER veel meren", translation: "Are there many lakes" }, { text: "De plattegrond", translation: "The map" }, { text: "Een riool", translation: "A sewer" }, { text: "Het ongeluk was in het zuiden", translation: "The accident was in the south" }, { text: "De plek", translation: "The place" }, { text: "Groot bos", translation: "Large forest" }, { text: "Wenen", translation: "Vienna" }] },
+                    { heading: "Tijd & Frequenties", items: [{ text: "We begonnen om 2 uur.", translation: "We started at 2 o’clock." }, { text: "Tijdens de rest van de dag", translation: "During the rest of the day" }, { text: "Niet ZO vaak", translation: "Not SO often" }, { text: "Wanneer ik een …. KOOP", translation: "When I buy a…" }, { text: "Het voorjaar - Lente", translation: "Spring" }, { text: "Najaar - Herfst", translation: "Autumn" }, { text: "Vorig jaar BEN IK naar Wenen met de trein gegaan.", translation: "Last year I went to Vienna by train." }] },
+                    { heading: "Mensen & Personen", items: [{ text: "HIJ (neef)", translation: "He (cousin)" }, { text: "Zij (nicht)", translation: "She (cousin)" }, { text: "Een passagier", translation: "A passenger" }, { text: "Ze waren in de war", translation: "They were confused" }, { text: "Lost - Kwijt", translation: "Lost - disappeared" }] },
+                    { heading: "Acties & Gebeurtenissen", items: [{ text: "We hebben samen ontbeten, …", translation: "We had breakfast together" }, { text: "We ontbeten.", translation: "We had breakfast." }, { text: "Stofzuigen", translation: "To vacuum" }, { text: "Vandaag heb ik IN het park gechillt.", translation: "Today I chilled IN the park." }, { text: "Na een hele sterke regenbui", translation: "After a very heavy rain shower" }, { text: "Bereiken", translation: "To reach" }, { text: "Was ontspoord", translation: "Had derailed" }, { text: "Er zijn 3 mensen omgekomen en 40 gewond geraakt.", translation: "3 people died and 40 were injured." }, { text: "Waardoor - Doordat", translation: "Because of what? - Because" }, { text: "Zijn - gebracht", translation: "Are - brought" }, { text: "Weg te takelen", translation: "To tow away" }] },
+                    { heading: "Diversen & Grammatica", items: [{ text: "Regels", translation: "Rules" }, { text: "Dit recept", translation: "This recipe" }, { text: "Zelf gebruik ik het nooit.", translation: "I myself never use it." }, { text: "Asperge (franse uitspraak)", translation: "Asparagus (French pronunciation)" }, { text: "Asperger (a disease; with the ‘g’)", translation: "Asperger" }] }
+                ]
+            },
+            extra: {
+                title: "Extra: Vruchten & Groenten",
+                sections: [
+                    { heading: "Vruchten �", items: [{ text: "De mango", translation: "A sweet, juicy fruit used in tropical dishes." }, { text: "De ananas", translation: "A large, tropical fruit with a sweet and fresh taste." }, { text: "De kiwi", translation: "A small, oval fruit with a hairy peel and green flesh." }, { text: "De granaatappel", translation: "A round fruit filled with juicy, ruby-red seeds." }, { text: "De avocado", translation: "Often seen as a vegetable, but botanically a fruit." }, { text: "De vijg", translation: "A soft, sweet fruit with many small seeds." }, { text: "De lychee", translation: "A small, exotic fruit with a pink peel and a sweet, juicy inside." }, { text: "De papaja", translation: "A large, tropical fruit with orange flesh and a sweet taste." }, { text: "De passievrucht", translation: "A purple fruit with a hard peel and jelly-like flesh with seeds." }, { text: "De kaki", translation: "An orange fruit that looks like a tomato and is only edible when soft." }, { text: "De braam", translation: "A small, dark fruit that grows on a bush." }, { text: "De bosbes", translation: "A small, blue berry with a slightly sweet taste." }, { text: "De framboos", translation: "A delicate, red berry." }] },
+                    { heading: "Groenten 🥦", items: [{ text: "De artisjok", translation: "A plant whose flower bud is eaten." }, { text: "De asperge", translation: "A long, white or green vegetable." }, { text: "De aubergine", translation: "A purple, egg-shaped fruit often used in Mediterranean dishes." }, { text: "De courgette", translation: "A green, elongated vegetable." }, { text: "De pastinaak", translation: "A white root vegetable with a sweet, anise-like taste." }, { text: "De pompoen", translation: "A large, orange fruit often eaten in autumn." }, { text: "De prei", translation: "A long, green and white vegetable with a mild onion flavor." }, { text: "De radijs", translation: "A small, red and spicy root vegetable." }, { text: "De rucola", translation: "A type of lettuce with a peppery taste." }, { text: "De venkel", translation: "A root vegetable with a strong anise flavor." }] }
+                ]
+            }
+        };
+
+        const allQuizQuestions = [
+            { question: "Wat is de correcte spelling voor 'Together'?", options: ["Zamen", "Samen", "Saamen", "Saam"], answer: "Samen" },
+            { question: "Wat betekent 'Verkouden'?", options: ["Verward zijn", "Moe zijn", "Een verkoudheid hebben", "Ziek zijn"], answer: "Een verkoudheid hebben" },
+            { question: "Welk woord is formeler: 'Praten' of 'Spreken'?", options: ["Praten", "Spreken"], answer: "Spreken" },
+            { question: "Wat is de Nederlandse vertaling voor 'apricot'?", options: ["Perzik", "Pruim", "Nectarine", "Abrikoos"], answer: "Abrikoos" },
+            { question: "Wat betekent 'Wisselvallig weer'?", options: ["Regenachtig weer", "Veranderlijk weer", "Zonnig weer", "Koud weer"], answer: "Veranderlijk weer" },
+            { question: "Welke groente heeft een zoete, anijsachtige smaak?", options: ["De prei", "De pastinaak", "De venkel", "De rucola"], answer: "De pastinaak" },
+            { question: "Het woord 'plattegrond' betekent:", options: ["De vlakke grond", "De kaart", "Een riool", "De metro"], answer: "De kaart" },
+            { question: "De zin 'thinking crazy' bestaat niet in het Nederlands. Wat is de juiste manier om zoiets te zeggen?", options: ["Gek denken", "Een gek plan hebben", "Denken gek", "Gekke gedachten"], answer: "Een gek plan hebben" },
+            { question: "Hoe zeg je 'Last year I went to Vienna by train' correct?", options: ["Laatste jaar ik ga naar Wenen met de trein.", "Vorig jaar ik ben gegaan naar Wenen met de trein.", "Vorig jaar BEN IK naar Wenen met de trein gegaan.", "Vorige jaar ik ben naar Wenen gegaan met de trein."], answer: "Vorig jaar BEN IK naar Wenen met de trein gegaan." },
+            { question: "Wat betekent 'Stofzuigen'?", options: ["Schoonmaken", "Wassen", "Stofzuigen", "Koken"], answer: "Stofzuigen" },
+            { question: "Welke vrucht wordt vaak als groente gezien, maar is botanisch gezien een vrucht?", options: ["De papaja", "De vijg", "De avocado", "De ananas"], answer: "De avocado" },
+            { question: "Wat is de correcte manier om te zeggen 'During the cooking'?", options: ["Tijdens DAT IK KOOK", "Tijdens het koken", "Terwijl dat ik kook", "Tijdens koken"], answer: "Tijdens het koken" },
+            { question: "Welk werkwoord gebruik je voor een specifieke, directe mededeling?", options: ["Praten", "Zeggen", "Vertellen", "Spreken"], answer: "Zeggen" },
+            { question: "Wat betekent 'Inschakelen'?", options: ["Aanzetten", "Uitzetten", "Iemand regelen en bellen", "Geloven"], answer: "Iemand regelen en bellen" },
+            { question: "Het woord 'Kwijt' betekent:", options: ["Verloren (verdwenen)", "Gevonden", "Bewaard", "Opgepikt"], answer: "Verloren (verdwenen)" },
+            { question: "Wat is de Nederlandse vertaling voor 'Changeable weather'?", options: ["Veranderend weer", "Wisselvallig weer", "Mooi weer", "Slecht weer"], answer: "Veranderlijk weer" },
+            { question: "Welke vrucht is eetbaar als hij zacht is en lijkt op een tomaat?", options: ["De kaki", "De braam", "De lychee", "De bosbes"], answer: "De kaki" },
+            { question: "Het Nederlandse woord voor 'Stage' is:", options: ["Toonzaal", "Scherm", "Podium", "Tribune"], answer: "Podium" },
+            { question: "Wat betekent de zin 'Morgen ga ik het ervan NEMEN'?", options: ["Ik zal het morgen nemen.", "Morgen neem ik een pauze.", "Morgen ga ik er het beste van maken.", "Ik ga morgen niet."], answer: "Morgen ga ik er het beste van maken." },
+            { question: "Wat is de correcte vertaling voor 'to experience'?", options: ["Geloven", "Beleven", "Winnen", "Zeggen"], answer: "Beleven" },
+            { question: "Welk woord is een synoniem voor 'meemaken'?", options: ["Vergeten", "Beleven", "Herinneren", "Praten"], answer: "Beleven" },
+            { question: "Wat betekent de uitdrukking 'Er vandoor gaan'?", options: ["Weggaan", "Binnenkomen", "Blijven", "Vallen"], answer: "Weggaan" },
+            { question: "In de zin 'een bezoek BIJ zijn oom', wat betekent 'bij'?", options: ["Met", "Naast", "Bij", "Tijdens"], answer: "Bij" },
+            { question: "Wat is het meervoud van 'Stad'?", options: ["Staden", "Steden", "Stadjes", "Stadsen"], answer: "Steden" },
+            { question: "De vrucht die aan een struik groeit en donker is, is de...", options: ["Braam", "Framboos", "Bosbes", "Pruim"], answer: "Braam" },
+            { question: "Welke groente wordt vaak gebakken of gegrild?", options: ["De prei", "De aubergine", "De courgette", "De artisjok"], answer: "De courgette" },
+            { question: "Wat is de correcte vertaling van 'He (cousin)'?", options: ["Hij (nicht)", "Zij (nicht)", "Hij (neef)", "Zij (neef)"], answer: "Hij (neef)" },
+            { question: "Wat betekent 'Wildvreemd'?", options: ["Heel oud", "Helemaal onbekend", "Erg wild", "Een vreemde wildernis"], answer: "Helemaal onbekend" },
+            { question: "Wat is een kenmerk van de 'rucola'?", options: ["Zoete smaak", "Sterke anijssmaak", "Peperachtige smaak", "Milde uiensmaak"], answer: "Peperachtige smaak" },
+            { question: "Welke vrucht heeft een harige schil?", options: ["De ananas", "De kiwi", "De lychee", "De passievrucht"], answer: "De kiwi" },
+            { question: "In de zin 'We hebben samen ontbeten', welk werkwoord wordt gebruikt?", options: ["Zeggen", "Praten", "Ontbijten", "Vertellen"], answer: "Ontbijten" },
+            { question: "Wat is de Nederlandse vertaling voor 'The map'?", options: ["De kaart", "Het kaartje", "De plattegrond", "De straten"], answer: "De plattegrond" },
+            { question: "Wat is de betekenis van 'bereiken'?", options: ["Weggaan", "Aankomen", "Bereiken", "Rijden"], answer: "Bereiken" },
+        ];
+
+        let currentView = 'notes';
+        let quizQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        let shuffledOptions = [];
+        
+        const appContainer = document.getElementById('app-container');
+
+        const shuffleArray = (array) => {
+            let newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        };
+
+        const renderNotesView = () => {
+            const notesHtml = Object.entries(notesData).map(([key, data]) => {
+                const sectionsHtml = data.sections.map((section, index) => {
+                    const itemsHtml = section.items.map(item => `
+                        <li class="flex flex-col p-3 bg-white rounded-xl transition-all duration-300 hover:bg-gray-50 shadow-sm">
+                            <span class="text-lg font-semibold text-gray-800">${item.text}</span>
+                            <span class="text-sm italic text-gray-500 mt-1">${item.translation}</span>
+                        </li>
+                    `).join('');
+
+                    return `
+                        <div class="mb-4">
+                            <button class="toggle-section w-full flex items-center justify-between text-left p-4 bg-gray-50 rounded-2xl transition-all duration-300 hover:bg-gray-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <h3 class="text-2xl font-bold text-gray-700 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles mr-2 text-yellow-500"><path d="M9.957 4.29a2 2 0 0 1 3.086 0L15.618 7.3a2 2 0 0 0 1.252.883l3.321.458a2 2 0 0 1 1.157 3.424l-2.3 2.5a2 2 0 0 0-.585 1.637l.385 3.291a2 2 0 0 1-2.908 2.112l-2.885-1.551a2 2 0 0 0-1.892 0l-2.885 1.551a2 2 0 0 1-2.908-2.112l.385-3.291a2 2 0 0 0-.585-1.637l-2.3-2.5a2 2 0 0 1 1.157-3.424l3.321-.458a2 2 0 0 0 1.252-.883z"/></svg>
+                                    ${section.heading}
+                                </h3>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down transform transition-transform duration-300"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
+                            <div class="collapsible-content">
+                                <ul class="space-y-2 p-4 bg-gray-50 rounded-2xl mt-2 border border-gray-200">
+                                    ${itemsHtml}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
+                        <h2 class="text-3xl font-extrabold text-blue-800 mb-4 border-b-2 border-blue-200 pb-2 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-library mr-2 text-blue-500"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/><path d="M20 2v-1h-4"/><path d="M20 2v-1h-4"/><path d="M4 2v1h8"/><path d="M12 6h8"/></svg>
+                            ${data.title}
+                        </h2>
+                        ${sectionsHtml}
+                    </div>
+                `;
+            }).join('');
+
+            appContainer.innerHTML = `<div class="p-4 sm:p-8 space-y-8 animate-fade-in-up">${notesHtml}</div>`;
+
+            // Add event listeners for collapsible sections
+            document.querySelectorAll('.toggle-section').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const content = event.currentTarget.nextElementSibling;
+                    const icon = event.currentTarget.querySelector('.lucide-chevron-down');
+                    content.classList.toggle('open');
+                    icon.classList.toggle('rotate-180');
+                });
+            });
+        };
+
+        const renderQuizView = () => {
+            if (currentQuestionIndex >= quizQuestions.length) {
+                appContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full p-8 text-center animate-fade-in-up">
+                        <h2 class="text-5xl font-extrabold text-blue-800 mb-4">Quiz voltooid!</h2>
+                        <p class="text-2xl text-gray-600 mb-8">Je score is...</p>
+                        <div class="text-7xl font-black text-green-600 mb-8">${score} / ${quizQuestions.length}</div>
+                        <button id="start-new-quiz-btn" class="flex items-center px-8 py-4 bg-green-600 text-white font-bold rounded-full text-xl shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat mr-3"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+                            Start een nieuwe quiz
+                        </button>
+                    </div>
+                `;
+                document.getElementById('start-new-quiz-btn').addEventListener('click', startQuiz);
+                return;
+            }
+
+            const questionData = quizQuestions[currentQuestionIndex];
+            shuffledOptions = shuffleArray(questionData.options);
+
+            const optionsHtml = shuffledOptions.map((option, index) => `
+                <button
+                    data-option="${option}"
+                    class="p-4 rounded-xl border-2 font-semibold text-lg transition-all duration-300 flex items-center justify-between text-left bg-blue-50 text-blue-800 hover:bg-blue-100 hover:border-blue-300"
+                >
+                    <span>${option}</span>
+                </button>
+            `).join('');
+
+            appContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full p-4 sm:p-8 animate-fade-in-up">
+                    <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-6 sm:p-10 border border-gray-100">
+                        <div class="text-center mb-6">
+                            <span class="text-lg font-bold text-blue-600">Vraag ${currentQuestionIndex + 1} van ${quizQuestions.length}</span>
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800 text-center mb-8">${questionData.question}</h2>
+                        <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+                        <div id="next-btn-container" class="mt-8 text-center" style="display:none;">
+                            <button id="next-question-btn" class="flex items-center mx-auto px-6 py-3 bg-blue-600 text-white font-bold rounded-full text-lg shadow-md hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 active:scale-95">
+                                Volgende vraag <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send ml-2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.querySelectorAll('#options-container button').forEach(button => {
+                button.addEventListener('click', handleAnswer);
+            });
+        };
+
+        const handleAnswer = (event) => {
+            if (selectedAnswer !== null) return;
+
+            const selectedBtn = event.currentTarget;
+            const chosenOption = selectedBtn.getAttribute('data-option');
+            selectedAnswer = chosenOption;
+            
+            const questionData = quizQuestions[currentQuestionIndex];
+
+            // Highlight buttons
+            document.querySelectorAll('#options-container button').forEach(button => {
+                const option = button.getAttribute('data-option');
+                button.disabled = true;
+
+                if (option === questionData.answer) {
+                    button.classList.remove('bg-blue-50', 'hover:bg-blue-100', 'text-blue-800');
+                    button.classList.add('bg-green-100', 'text-green-800', 'border-green-500');
+                    button.innerHTML = `<span>${option}</span> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check text-green-500 ml-2"><path d="M20 6 9 17l-5-5"/></svg>`;
+                } else if (option === selectedAnswer) {
+                    button.classList.remove('bg-blue-50', 'hover:bg-blue-100', 'text-blue-800');
+                    button.classList.add('bg-red-100', 'text-red-800', 'border-red-500');
+                    button.innerHTML = `<span>${option}</span> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x text-red-500 ml-2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+                } else {
+                    button.classList.remove('bg-blue-50', 'hover:bg-blue-100', 'text-blue-800');
+                    button.classList.add('bg-gray-50', 'text-gray-400', 'border-gray-200', 'cursor-not-allowed');
+                }
+            });
+
+            if (selectedAnswer === questionData.answer) {
+                score++;
+            }
+
+            document.getElementById('next-btn-container').style.display = 'block';
+            document.getElementById('next-question-btn').addEventListener('click', nextQuestion);
+        };
+
+        const nextQuestion = () => {
+            selectedAnswer = null;
+            currentQuestionIndex++;
+            renderQuizView();
+        };
+
+        const startQuiz = () => {
+            const shuffledQuestions = shuffleArray(allQuizQuestions);
+            quizQuestions = shuffledQuestions.slice(0, 10);
+            currentQuestionIndex = 0;
+            score = 0;
+            selectedAnswer = null;
+            currentView = 'quiz';
+            updateView();
+        };
+
+        const updateView = () => {
+            if (currentView === 'notes') {
+                renderNotesView();
+                document.getElementById('notes-btn').classList.add('bg-blue-600', 'text-white', 'shadow-lg');
+                document.getElementById('notes-btn').classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                document.getElementById('quiz-btn').classList.remove('bg-green-600', 'text-white', 'shadow-lg');
+                document.getElementById('quiz-btn').classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+            } else {
+                renderQuizView();
+                document.getElementById('quiz-btn').classList.add('bg-green-600', 'text-white', 'shadow-lg');
+                document.getElementById('quiz-btn').classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                document.getElementById('notes-btn').classList.remove('bg-blue-600', 'text-white', 'shadow-lg');
+                document.getElementById('notes-btn').classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+            }
+        };
+
+        // Initial render and event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            updateView();
+            document.getElementById('notes-btn').addEventListener('click', () => {
+                currentView = 'notes';
+                updateView();
+            });
+            document.getElementById('quiz-btn').addEventListener('click', startQuiz);
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+
+</body>
+</html>
+�
