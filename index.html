@@ -1,373 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronDown, Book, Lightbulb, CheckCircle, XCircle, RefreshCcw } from 'lucide-react';
-
-// The main App component
-const App = () => {
-  const [currentPage, setCurrentPage] = useState('notes'); // 'notes', 'quiz'
-  const [openSection, setOpenSection] = useState(null);
-  const [currentQuizQuestions, setCurrentQuizQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
-  const [submitted, setSubmitted] = useState(false);
-
-  // Utility function to convert simple markdown bold to HTML
-  const renderMarkdownToHtml = (markdown) => {
-    return markdown.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-  };
-
-  // Data for the notes, organized for the new format
-  const notesData = [
-    {
-      title: "Donderdag 7 Augustus",
-      sections: [
-        {
-          heading: "Vocabulaire & Uitdrukkingen",
-          items: [
-            "**Samen** - Together (let op: niet 'zamen')",
-            "**Gek denken** bestaat niet.",
-            "**Je bent gek.** - You are crazy.",
-            "**Een gek plan hebben / een rare gedachte hebben / iets raars doen.** - To have a crazy plan / a strange thought / do something strange.",
-            "**Geloven** - To believe",
-            "**Beleven = Meemaken** - To experience",
-            "**Verkouden** zijn - To have a cold",
-            "**Zelfs als ik me beter voel** - EVEN if I feel better"
-          ]
-        },
-        {
-          heading: "Tijd & Handelingen",
-          items: [
-            "**Tijdens het koken** - During the cooking",
-            "**Terwijl ik kook** (Correcte zin)",
-            "**Ik doe de afzuigkap aan.** - I turn on the extractor fan.",
-            "**Morgen ga ik het ervan nemen.** - Tomorrow I'm going to make the most of it.",
-            "**Ik vind het niet leuk om naar een begrafenis te gaan.** - I don't like to go to a funeral.",
-            "**Ik hou niet van begrafenissen.** - I don't like funerals.",
-            "**Wisselvallig weer** - Changeable weather",
-            "**Dat betekent** - That means",
-            "**Het wisselt continu.** - It changes constantly.",
-            "**Niet storen** - Do not disturb",
-            "**Er vandoor gaan** - To leave / to escape",
-            "**Een bezoek bij zijn oom** (of met) - A visit at his uncle's place (or with)",
-            "**Hij reed.** - He drove.",
-            "**Opgehaald.** - Picked up.",
-            "**Succes** met de twee vluchten. - Good luck with the two flights. (Let op: de correcte spelling is 'Succes'!)"
-          ]
-        },
-        {
-          heading: "Plaatsen & Objecten",
-          items: [
-            "**De steden** - Cities, **De stad** - City",
-            "**Het podium** - Stage",
-            "**De kroeg** - Cafe / Pub",
-            "**Waar niemand hen hoort, kent of stoort.** - Where no one hears, knows, or disturbs them.",
-            "**Een goed excuus.** - A good excuse.",
-            "**De abrikoos** - Apricot",
-            "**De pruim** - Plum",
-            "**De nectarine** - Nectarine",
-            "**De perzik** - Peach"
-          ]
-        },
-        {
-          heading: "Diversen",
-          items: [
-            "**Inschakelen** - To arrange and call someone",
-            "**Wildvreemd** - Completely unknown",
-            "**Even oud** - The same age",
-            "**Dit betekent** - This means",
-            "**Dat betekent** - That means"
-          ]
-        }
-      ]
-    },
-    {
-      title: "Woordenlijst (EXTRA)",
-      sections: [
-        {
-          heading: "Vruchten 🍎",
-          items: [
-            "**De mango:** Een zoete, sappige vrucht die vaak in tropische gerechten wordt gebruikt.",
-            "**De ananas:** Een grote, tropische vrucht met een zoete en frisse smaak.",
-            "**De kiwi:** Een kleine, ovale vrucht met een harige schil en groen vruchtvlees.",
-            "**De granaatappel:** Een ronde vrucht gevuld met talloze sappige, robijnrode zaadjes.",
-            "**De avocado:** Wordt vaak als groente gezien, maar is botanisch een vrucht.",
-            "**De vijg:** Een zachte, zoete vrucht met veel kleine pitjes.",
-            "**De lychee:** Een kleine, exotische vrucht met een roze schil en een zoete, sappige binnenkant.",
-            "**De papaja:** Een grote, tropische vrucht met oranje vlees en een zoete smaak.",
-            "**De passievrucht:** Een paarse vrucht met een harde schil en geleiachtig vruchtvlees vol met pitjes.",
-            "**De kaki:** Een oranje vrucht die lijkt op een tomaat en pas eetbaar is als hij zacht is.",
-            "**De braam:** Een kleine, donkere vrucht die aan een struik groeit.",
-            "**De bosbes:** Een kleine, blauwe bes met een lichtzoete smaak.",
-            "**De framboos:** Een delicate, rode bes."
-          ]
-        },
-        {
-          heading: "Groenten 🥦",
-          items: [
-            "**De artisjok:** Een plant waarvan de bloemknop wordt gegeten.",
-            "**De asperge:** Een lange, witte of groene groente die vooral in het voorjaar wordt gegeten.",
-            "**De aubergine:** Een paarse, eivormige vrucht die vaak in mediterrane gerechten wordt gebruikt.",
-            "**De courgette:** Een groene, langwerpige groente die vaak gebakken of gegrild wordt.",
-            "**De pastinaak:** Een witte wortelgroente met een zoete, anijsachtige smaak.",
-            "**De pompoen:** Een grote, oranje vrucht die vaak in de herfst wordt gegeten.",
-            "**De prei:** Een lange, groene en witte groente met een milde uiensmaak.",
-            "**De radijs:** Een kleine, rode en pittige knolgroente die vaak rauw wordt gegeten.",
-            "**De rucola:** Een slasoort met een peperachtige smaak.",
-            "**De venkel:** Een knolgroente met een sterke anijssmaak."
-          ]
-        }
-      ]
-    },
-    {
-      title: "Maandag 11 Augustus",
-      sections: [
-        {
-          heading: "Grammatica: 'praten', 'zeggen', 'vertellen', 'spreken'",
-          items: [
-            "**Praten:** Een uitwisseling van woorden, een gesprek voeren. Focus op de interactie, informeel. Bijvoorbeeld: 'We hebben een uur gepraat over de vakantie.'",
-            "**Zeggen:** Een specifieke uitspraak doen, een boodschap overbrengen. Focus op de inhoud van wat er gezegd wordt, vaak kort en direct. Bijvoorbeeld: 'Hij zei: 'Ik ga morgen naar huis.''",
-            "**Vertellen:** Het overbrengen van uitgebreidere informatie, zoals een verhaal of een gebeurtenis. Impliceert dat de informatie nieuw is voor de luisteraar. Bijvoorbeeld: 'Kun je me vertellen wat er gisteren is gebeurd?'",
-            "**Spreken:** Mondeling taal uiten. Kan verwijzen naar taalbeheersing of een formele toespraak. Formeler dan 'praten'. Bijvoorbeeld: 'Zij spreekt vloeiend Frans.'"
-          ]
-        },
-        {
-          heading: "Plaatsen & Geografie",
-          items: [
-            "**Het park** (Let op: HET lidwoord)",
-            "**In Libanon, is het...**",
-            "**Langs** - Along",
-            "**Zijn er veel meren.** - Are there many lakes.",
-            "**De plattegrond** - The map",
-            "**Een riool** - A sewer",
-            "**Het ongeluk was in het zuiden.** - The accident was in the south.",
-            "**De plek** - The place",
-            "**Groot bos.** - Large forest.",
-            "**Wenen** - Vienna"
-          ]
-        },
-        {
-          heading: "Tijd & Frequenties",
-          items: [
-            "**We begonnen om 2 uur.** - We started at 2 o’clock.",
-            "**Tijdens de rest van de dag.** - During the rest of the day.",
-            "**Niet zo vaak.** - Not SO often.",
-            "**Wanneer ik een ... koop.** (Let op de woordvolgorde!)",
-            "**Het voorjaar** - Lente (Spring)",
-            "**Het najaar** - Herfst (Autumn)",
-            "**Vorig jaar ben ik naar Wenen met de trein gegaan.** - Last year I went to Vienna by train."
-          ]
-        },
-        {
-          heading: "Mensen & Personen",
-          items: [
-            "**Hij** (neef) - He (cousin)",
-            "**Zij** (nicht) - She (cousin)",
-            "**Een passagier.** - A passenger.",
-            "**Ze waren in de war.** - They were confused.",
-            "**Kwijt** - Lost (disappeared)"
-          ]
-        },
-        {
-          heading: "Acties & Gebeurtenissen",
-          items: [
-            "**We hebben samen ontbeten.** - We had breakfast together.",
-            "**We ontbeten.** - We had breakfast.",
-            "**Stofzuigen.** - To vacuum.",
-            "**Vandaag heb ik in het park gechillt.** - Today I chilled IN the park. (Correcte zinsbouw)",
-            "**Na een hele sterke regenbui.** - After a very heavy rain shower.",
-            "**Bereiken.** - To reach.",
-            "**Was ontspoord.** - Had derailed.",
-            "**Er zijn 3 mensen omgekomen en 40 gewond geraakt.** - 3 people died and 40 were injured.",
-            "**Waardoor** - Because of what?",
-            "**Doordat** - Because.",
-            "**Zijn ... gebracht.** - Are ... brought.",
-            "**Weg te takelen.** - To tow away."
-          ]
-        },
-        {
-          heading: "Diversen & Grammatica",
-          items: [
-            "**Regels.** - Rules.",
-            "**Dit recept** (niet deze) - This recipe. (Let op: HET recept)",
-            "**Zelf gebruik ik het nooit.** - I myself never use it.",
-            "**Asperge** (Franse uitspraak).",
-            "**Asperger** (een ziekte; met de ‘g’)."
-          ]
-        }
-      ]
-    }
-  ];
-
-  // Full bank of quiz questions, now much larger and dynamic
-  const allQuizQuestions = [
-    { question: "Wat is de correcte manier om 'Together' te zeggen?", options: ["Zamen", "Samen", "Samenhang"], answer: "Samen" },
-    { question: "Welk woord betekent 'to experience'?", options: ["Geloven", "Beleven", "Gedachte"], answer: "Beleven" },
-    { question: "Wat betekent 'Wisselvallig weer'?", options: ["Zonnig en warm", "Veranderlijk weer", "Heel koud"], answer: "Veranderlijk weer" },
-    { question: "Hoe zeg je 'Good luck with the two flights.'?", options: ["Success met de twee vluchten.", "Succes met de twee vluchten."], answer: "Succes met de twee vluchten." },
-    { question: "Welke vrucht wordt beschreven als 'Een kleine, ovale vrucht met een harige schil en groen vruchtvlees'?", options: ["De papaja", "De kiwi", "De vijg"], answer: "De kiwi" },
-    { question: "Wat is de Nederlandse vertaling voor 'Apricot'?", options: ["De nectarine", "De pruim", "De abrikoos"], answer: "De abrikoos" },
-    { question: "Welk werkwoord gebruik je voor een informeel gesprek?", options: ["Spreken", "Zeggen", "Praten"], answer: "Praten" },
-    { question: "Kies de juiste zin: 'Last year I went to Vienna by train.'", options: ["Vorig jaar ik ben naar Wenen met de trein gegaan.", "Vorig jaar ben ik naar Wenen met de trein gegaan."], answer: "Vorig jaar ben ik naar Wenen met de trein gegaan." },
-    { question: "Wat is 'The map' in het Nederlands?", options: ["Het plan", "De plattegrond", "De locatie"], answer: "De plattegrond" },
-    { question: "Welke groente is een slasoort met een peperachtige smaak?", options: ["De radijs", "De pastinaak", "De rucola"], answer: "De rucola" },
-    { question: "Wat is de beste vertaling voor 'to leave / to escape'?", options: ["Weggaan", "Vertrekken", "Er vandoor gaan"], answer: "Er vandoor gaan" },
-    { question: "Welke vrucht is 'Een ronde vrucht gevuld met talloze sappige, robijnrode zaadjes'?", options: ["De granaatappel", "De vijg", "De kaki"], answer: "De granaatappel" },
-    { question: "Wat betekent 'Wildvreemd'?", options: ["Heel oud", "Compleet onbekend", "Erg vreemd"], answer: "Compleet onbekend" },
-    { question: "Wat is de juiste lidwoord voor 'park'?", options: ["De", "Het"], answer: "Het" },
-    { question: "Welk woord is formeler, 'praten' of 'spreken'?", options: ["Praten", "Spreken"], answer: "Spreken" },
-    { question: "Welke groente is 'Een witte wortelgroente met een zoete, anijsachtige smaak'?", options: ["De venkel", "De pastinaak", "De prei"], answer: "De pastinaak" },
-    { question: "Wat is de correcte vertaling voor 'During the cooking'?", options: ["Tijdens dat ik kook", "Tijdens het koken"], answer: "Tijdens het koken" },
-    { question: "Wat is de correcte uitspraak voor 'succes'?", options: ["Succes", "Success"], answer: "Succes" },
-    { question: "Wat is 'The sewer' in het Nederlands?", options: ["Het water", "Een riool", "De sloot"], answer: "Een riool" },
-    { question: "Welk woord gebruik je om een uitgebreider verhaal te vertellen?", options: ["Zeggen", "Praten", "Vertellen"], answer: "Vertellen" },
-    { question: "Hoe zeg je dat je iets verloren bent (disappeared)?", options: ["Verloren", "Kwijt"], answer: "Kwijt" }
-  ];
-
-  // Function to shuffle an array
-  const shuffleArray = (array) => {
-    let newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-  };
-
-  // Function to generate a new quiz
-  const generateNewQuiz = () => {
-    const shuffledQuestions = shuffleArray(allQuizQuestions);
-    const newQuizQuestions = shuffledQuestions.slice(0, 6);
-    setCurrentQuizQuestions(newQuizQuestions);
-    setAnswers({});
-    setSubmitted(false);
-  };
-
-  // Generate a quiz when the component mounts
-  useEffect(() => {
-    generateNewQuiz();
-  }, []);
-
-  // Component to render the collapsible notes
-  const NotesPage = () => (
-    <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg animate-fade-in-down w-full md:max-w-4xl mx-auto">
-      <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-6 border-b pb-2">Je Notities</h2>
-      {notesData.map((day, dayIndex) => (
-        <div key={dayIndex} className="mb-8">
-          <h3 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-4">{day.title}</h3>
-          {day.sections.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="mb-4">
-              <button
-                onClick={() => setOpenSection(openSection === `${dayIndex}-${sectionIndex}` ? null : `${dayIndex}-${sectionIndex}`)}
-                className="w-full flex justify-between items-center bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-100 p-4 rounded-lg font-semibold transition-colors duration-200 hover:bg-indigo-200 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                <span>{section.heading}</span>
-                <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${openSection === `${dayIndex}-${sectionIndex}` ? 'rotate-180' : ''}`} />
-              </button>
-              {openSection === `${dayIndex}-${sectionIndex}` && (
-                <ul className="mt-2 p-4 bg-indigo-50 dark:bg-gray-700 rounded-lg shadow-inner animate-fade-in space-y-2">
-                  {section.items.map((item, itemIndex) => (
-                    <li key={itemIndex} className="py-1 px-2 text-gray-800 dark:text-gray-200 border-l-2 border-indigo-400 ml-2" dangerouslySetInnerHTML={{ __html: renderMarkdownToHtml(item) }}></li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-
-  // Component for the quiz
-  const QuizPage = () => {
-    const handleAnswerChange = (questionIndex, option) => {
-      setAnswers({ ...answers, [questionIndex]: option });
-    };
-
-    const handleSubmit = () => {
-      setSubmitted(true);
-    };
-
-    const getResultColor = (questionIndex, option) => {
-      if (!submitted) return '';
-      if (answers[questionIndex] === option) {
-        return answers[questionIndex] === currentQuizQuestions[questionIndex].answer ? 'bg-green-200 dark:bg-green-700 text-green-800' : 'bg-red-200 dark:bg-red-700 text-red-800';
-      }
-      if (option === currentQuizQuestions[questionIndex].answer) {
-        return 'bg-green-200 dark:bg-green-700 text-green-800';
-      }
-      return '';
-    };
-
-    return (
-      <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg animate-fade-in-down w-full md:max-w-4xl mx-auto">
-        <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-6 border-b pb-2">Oefen Quiz</h2>
-        <button
-          onClick={generateNewQuiz}
-          className="w-full flex items-center justify-center space-x-2 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform duration-200 transform hover:scale-105 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 mb-6"
-        >
-          <RefreshCcw className="w-5 h-5" />
-          <span>Genereer Nieuwe Quiz</span>
-        </button>
-
-        {currentQuizQuestions.length > 0 ? (
-          <>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">Test je kennis! Selecteer je antwoorden en klik op 'Check Antwoorden'.</p>
-            {currentQuizQuestions.map((q, qIndex) => (
-              <div key={qIndex} className="mb-6 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700 transition-shadow duration-200 hover:shadow-md">
-                <p className="font-semibold text-gray-800 dark:text-gray-100 mb-3">{qIndex + 1}. {q.question}</p>
-                <div className="space-y-2">
-                  {q.options.map((option, oIndex) => (
-                    <div
-                      key={oIndex}
-                      className={`flex items-center p-3 rounded-md cursor-pointer transition-colors duration-200 ${getResultColor(qIndex, option) || 'hover:bg-indigo-50 dark:hover:bg-gray-600'}`}
-                      onClick={() => !submitted && handleAnswerChange(qIndex, option)}
-                    >
-                      <input
-                        type="radio"
-                        name={`question-${qIndex}`}
-                        value={option}
-                        checked={answers[qIndex] === option}
-                        onChange={() => handleAnswerChange(qIndex, option)}
-                        disabled={submitted}
-                        className="mr-3 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <span className="text-gray-700 dark:text-gray-200">{option}</span>
-                      {submitted && answers[qIndex] === option && (answers[qIndex] === q.answer ? <CheckCircle className="ml-auto text-green-500 w-5 h-5" /> : <XCircle className="ml-auto text-red-500 w-5 h-5" />)}
-                      {submitted && answers[qIndex] !== option && option === q.answer && <CheckCircle className="ml-auto text-green-500 w-5 h-5" />}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-            {!submitted && (
-              <button
-                onClick={handleSubmit}
-                className="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform duration-200 transform hover:scale-105 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                Check Antwoorden
-              </button>
-            )}
-            {submitted && (
-              <div className="mt-6 p-4 bg-indigo-100 dark:bg-indigo-900 rounded-lg shadow-inner text-indigo-800 dark:text-indigo-200 text-center animate-fade-in-down">
-                <h4 className="font-bold text-xl mb-2">Quiz voltooid!</h4>
-                <p>Je hebt de quiz afgerond. Controleer de antwoorden hierboven.</p>
-                <button
-                  onClick={generateNewQuiz}
-                  className="mt-4 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700"
-                >
-                  Opnieuw Proberen
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <p className="text-center text-gray-500 dark:text-gray-400">Klik op 'Genereer Nieuwe Quiz' om te beginnen.</p>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased">
-      <style>{`
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nederlands Leren</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .animate-fade-in-down {
@@ -384,36 +23,601 @@ const App = () => {
           0% { opacity: 0; }
           100% { opacity: 1; }
         }
-      `}</style>
+        .lucide {
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased">
 
-      {/* Sidebar Navigation */}
-      <nav className="fixed md:static inset-y-0 left-0 z-40 w-full md:w-64 bg-white dark:bg-gray-800 shadow-xl transition-transform duration-300 transform -translate-x-full md:translate-x-0">
-        <div className="flex flex-col h-full p-4">
-          <div className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-8 mt-4">
-            Nederlands Leren
-          </div>
-          <button
-            onClick={() => setCurrentPage('notes')}
-            className={`w-full flex items-center p-4 rounded-lg font-semibold transition-colors duration-200 mb-4 ${currentPage === 'notes' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'}`}
-          >
-            <Book className="mr-3 w-5 h-5" /> Notities
-          </button>
-          <button
-            onClick={() => setCurrentPage('quiz')}
-            className={`w-full flex items-center p-4 rounded-lg font-semibold transition-colors duration-200 mb-4 ${currentPage === 'quiz' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'}`}
-          >
-            <Lightbulb className="mr-3 w-5 h-5" /> Quiz
-          </button>
-        </div>
-      </nav>
-
-      {/* Main Content Area */}
-      <main className="flex-1 p-8 md:ml-64 transition-all duration-300">
-        {currentPage === 'notes' && <NotesPage />}
-        {currentPage === 'quiz' && <QuizPage />}
-      </main>
+    <div id="root" class="flex min-h-screen">
+      <!-- Content will be rendered here by JavaScript -->
     </div>
-  );
-};
 
-export default App;
+    <script>
+        // Data for the notes
+        const notesData = [
+            {
+              title: "Donderdag 7 Augustus",
+              sections: [
+                {
+                  heading: "Vocabulaire & Uitdrukkingen",
+                  items: [
+                    "<b>Samen</b> - Together (let op: niet 'zamen')",
+                    "<b>Gek denken</b> bestaat niet.",
+                    "<b>Je bent gek.</b> - You are crazy.",
+                    "<b>Een gek plan hebben / een rare gedachte hebben / iets raars doen.</b> - To have a crazy plan / a strange thought / do something strange.",
+                    "<b>Geloven</b> - To believe",
+                    "<b>Beleven = Meemaken</b> - To experience",
+                    "<b>Verkouden</b> zijn - To have a cold",
+                    "<b>Zelfs als ik me beter voel</b> - EVEN if I feel better"
+                  ]
+                },
+                {
+                  heading: "Tijd & Handelingen",
+                  items: [
+                    "<b>Tijdens het koken</b> - During the cooking",
+                    "<b>Terwijl ik kook</b> (Correcte zin)",
+                    "<b>Ik doe de afzuigkap aan.</b> - I turn on the extractor fan.",
+                    "<b>Morgen ga ik het ervan nemen.</b> - Tomorrow I'm going to make the most of it.",
+                    "<b>Ik vind het niet leuk om naar een begrafenis te gaan.</b> - I don't like to go to a funeral.",
+                    "<b>Ik hou niet van begrafenissen.</b> - I don't like funerals.",
+                    "<b>Wisselvallig weer</b> - Changeable weather",
+                    "<b>Dat betekent</b> - That means",
+                    "<b>Het wisselt continu.</b> - It changes constantly.",
+                    "<b>Niet storen</b> - Do not disturb",
+                    "<b>Er vandoor gaan</b> - To leave / to escape",
+                    "<b>Een bezoek bij zijn oom</b> (of met) - A visit at his uncle's place (or with)",
+                    "<b>Hij reed.</b> - He drove.",
+                    "<b>Opgehaald.</b> - Picked up.",
+                    "<b>Succes</b> met de twee vluchten. - Good luck with the two flights. (Let op: de correcte spelling is 'Succes'!)"
+                  ]
+                },
+                {
+                  heading: "Plaatsen & Objecten",
+                  items: [
+                    "<b>De steden</b> - Cities, <b>De stad</b> - City",
+                    "<b>Het podium</b> - Stage",
+                    "<b>De kroeg</b> - Cafe / Pub",
+                    "<b>Waar niemand hen hoort, kent of stoort.</b> - Where no one hears, knows, or disturbs them.",
+                    "<b>Een goed excuus.</b> - A good excuse.",
+                    "<b>De abrikoos</b> - Apricot",
+                    "<b>De pruim</b> - Plum",
+                    "<b>De nectarine</b> - Nectarine",
+                    "<b>De perzik</b> - Peach"
+                  ]
+                },
+                {
+                  heading: "Diversen",
+                  items: [
+                    "<b>Inschakelen</b> - To arrange and call someone",
+                    "<b>Wildvreemd</b> - Completely unknown",
+                    "<b>Even oud</b> - The same age",
+                    "<b>Dit betekent</b> - This means",
+                    "<b>Dat betekent</b> - That means"
+                  ]
+                }
+              ]
+            },
+            {
+              title: "Woordenlijst (EXTRA)",
+              sections: [
+                {
+                  heading: "Vruchten 🍎",
+                  items: [
+                    "<b>De mango:</b> Een zoete, sappige vrucht die vaak in tropische gerechten wordt gebruikt.",
+                    "<b>De ananas:</b> Een grote, tropische vrucht met een zoete en frisse smaak.",
+                    "<b>De kiwi:</b> Een kleine, ovale vrucht met een harige schil en groen vruchtvlees.",
+                    "<b>De granaatappel:</b> Een ronde vrucht gevuld met talloze sappige, robijnrode zaadjes.",
+                    "<b>De avocado:</b> Wordt vaak als groente gezien, maar is botanisch een vrucht.",
+                    "<b>De vijg:</b> Een zachte, zoete vrucht met veel kleine pitjes.",
+                    "<b>De lychee:</b> Een kleine, exotische vrucht met een roze schil en een zoete, sappige binnenkant.",
+                    "<b>De papaja:</b> Een grote, tropische vrucht met oranje vlees en een zoete smaak.",
+                    "<b>De passievrucht:</b> Een paarse vrucht met een harde schil en geleiachtig vruchtvlees vol met pitjes.",
+                    "<b>De kaki:</b> Een oranje vrucht die lijkt op een tomaat en pas eetbaar is als hij zacht is.",
+                    "<b>De braam:</b> Een kleine, donkere vrucht die aan een struik groeit.",
+                    "<b>De bosbes:</b> Een kleine, blauwe bes met een lichtzoete smaak.",
+                    "<b>De framboos:</b> Een delicate, rode bes."
+                  ]
+                },
+                {
+                  heading: "Groenten 🥦",
+                  items: [
+                    "<b>De artisjok:</b> Een plant waarvan de bloemknop wordt gegeten.",
+                    "<b>De asperge:</b> Een lange, witte of groene groente die vooral in het voorjaar wordt gegeten.",
+                    "<b>De aubergine:</b> Een paarse, eivormige vrucht die vaak in mediterrane gerechten wordt gebruikt.",
+                    "<b>De courgette:</b> Een groene, langwerpige groente die vaak gebakken of gegrild wordt.",
+                    "<b>De pastinaak:</b> Een witte wortelgroente met een zoete, anijsachtige smaak.",
+                    "<b>De pompoen:</b> Een grote, oranje vrucht die vaak in de herfst wordt gegeten.",
+                    "<b>De prei:</b> Een lange, groene en witte groente met een milde uiensmaak.",
+                    "<b>De radijs:</b> Een kleine, rode en pittige knolgroente die vaak rauw wordt gegeten.",
+                    "<b>De rucola:</b> Een slasoort met een peperachtige smaak.",
+                    "<b>De venkel:</b> Een knolgroente met een sterke anijssmaak."
+                  ]
+                }
+              ]
+            },
+            {
+              title: "Maandag 11 Augustus",
+              sections: [
+                {
+                  heading: "Grammatica: 'praten', 'zeggen', 'vertellen', 'spreken'",
+                  items: [
+                    "<b>Praten:</b> Een uitwisseling van woorden, een gesprek voeren. Focus op de interactie, informeel. Bijvoorbeeld: 'We hebben een uur gepraat over de vakantie.'",
+                    "<b>Zeggen:</b> Een specifieke uitspraak doen, een boodschap overbrengen. Focus op de inhoud van wat er gezegd wordt, vaak kort en direct. Bijvoorbeeld: 'Hij zei: 'Ik ga morgen naar huis.''",
+                    "<b>Vertellen:</b> Het overbrengen van uitgebreidere informatie, zoals een verhaal of een gebeurtenis. Impliceert dat de informatie nieuw is voor de luisteraar. Bijvoorbeeld: 'Kun je me vertellen wat er gisteren is gebeurd?'",
+                    "<b>Spreken:</b> Mondeling taal uiten. Kan verwijzen naar taalbeheersing of een formele toespraak. Formeler dan 'praten'. Bijvoorbeeld: 'Zij spreekt vloeiend Frans.'"
+                  ]
+                },
+                {
+                  heading: "Plaatsen & Geografie",
+                  items: [
+                    "<b>Het park</b> (Let op: HET lidwoord)",
+                    "<b>In Libanon, is het...</b>",
+                    "<b>Langs</b> - Along",
+                    "<b>Zijn er veel meren.</b> - Are there many lakes.",
+                    "<b>De plattegrond</b> - The map",
+                    "<b>Een riool</b> - A sewer",
+                    "<b>Het ongeluk was in het zuiden.</b> - The accident was in the south.",
+                    "<b>De plek</b> - The place",
+                    "<b>Groot bos.</b> - Large forest.",
+                    "<b>Wenen</b> - Vienna"
+                  ]
+                },
+                {
+                  heading: "Tijd & Frequenties",
+                  items: [
+                    "<b>We begonnen om 2 uur.</b> - We started at 2 o’clock.",
+                    "<b>Tijdens de rest van de dag.</b> - During the rest of the day.",
+                    "<b>Niet zo vaak.</b> - Not SO often.",
+                    "<b>Wanneer ik een ... koop.</b> (Let op de woordvolgorde!)",
+                    "<b>Het voorjaar</b> - Lente (Spring)",
+                    "<b>Het najaar</b> - Herfst (Autumn)",
+                    "<b>Vorig jaar ben ik naar Wenen met de trein gegaan.</b> - Last year I went to Vienna by train."
+                  ]
+                },
+                {
+                  heading: "Mensen & Personen",
+                  items: [
+                    "<b>Hij</b> (neef) - He (cousin)",
+                    "<b>Zij</b> (nicht) - She (cousin)",
+                    "<b>Een passagier.</b> - A passenger.",
+                    "<b>Ze waren in de war.</b> - They were confused.",
+                    "<b>Kwijt</b> - Lost (disappeared)"
+                  ]
+                },
+                {
+                  heading: "Acties & Gebeurtenissen",
+                  items: [
+                    "<b>We hebben samen ontbeten.</b> - We had breakfast together.",
+                    "<b>We ontbeten.</b> - We had breakfast.",
+                    "<b>Stofzuigen.</b> - To vacuum.",
+                    "<b>Vandaag heb ik in het park gechillt.</b> - Today I chilled IN the park. (Correcte zinsbouw)",
+                    "<b>Na een hele sterke regenbui.</b> - After a very heavy rain shower.",
+                    "<b>Bereiken.</b> - To reach.",
+                    "<b>Was ontspoord.</b> - Had derailed.",
+                    "<b>Er zijn 3 mensen omgekomen en 40 gewond geraakt.</b> - 3 people died and 40 were injured.",
+                    "<b>Waardoor</b> - Because of what?",
+                    "<b>Doordat</b> - Because.",
+                    "<b>Zijn ... gebracht.</b> - Are ... brought.",
+                    "<b>Weg te takelen.</b> - To tow away."
+                  ]
+                },
+                {
+                  heading: "Diversen & Grammatica",
+                  items: [
+                    "<b>Regels.</b> - Rules.",
+                    "<b>Dit recept</b> (niet deze) - This recipe. (Let op: HET recept)",
+                    "<b>Zelf gebruik ik het nooit.</b> - I myself never use it.",
+                    "<b>Asperge</b> (Franse uitspraak).",
+                    "<b>Asperger</b> (een ziekte; met de ‘g’)."
+                  ]
+                }
+              ]
+            }
+          ];
+
+        const allQuizQuestions = [
+            { question: "Wat is de correcte manier om 'Together' te zeggen?", options: ["Zamen", "Samen", "Samenhang"], answer: "Samen" },
+            { question: "Welk woord betekent 'to experience'?", options: ["Geloven", "Beleven", "Gedachte"], answer: "Beleven" },
+            { question: "Wat betekent 'Wisselvallig weer'?", options: ["Zonnig en warm", "Veranderlijk weer", "Heel koud"], answer: "Veranderlijk weer" },
+            { question: "Hoe zeg je 'Good luck with the two flights.'?", options: ["Success met de twee vluchten.", "Succes met de twee vluchten."], answer: "Succes met de twee vluchten." },
+            { question: "Welke vrucht wordt beschreven als 'Een kleine, ovale vrucht met een harige schil en groen vruchtvlees'?", options: ["De papaja", "De kiwi", "De vijg"], answer: "De kiwi" },
+            { question: "Wat is de Nederlandse vertaling voor 'Apricot'?", options: ["De nectarine", "De pruim", "De abrikoos"], answer: "De abrikoos" },
+            { question: "Welk werkwoord gebruik je voor een informeel gesprek?", options: ["Spreken", "Zeggen", "Praten"], answer: "Praten" },
+            { question: "Kies de juiste zin: 'Last year I went to Vienna by train.'", options: ["Vorig jaar ik ben naar Wenen met de trein gegaan.", "Vorig jaar ben ik naar Wenen met de trein gegaan."], answer: "Vorig jaar ben ik naar Wenen met de trein gegaan." },
+            { question: "Wat is 'The map' in het Nederlands?", options: ["Het plan", "De plattegrond", "De locatie"], answer: "De plattegrond" },
+            { question: "Welke groente is een slasoort met een peperachtige smaak?", options: ["De radijs", "De pastinaak", "De rucola"], answer: "De rucola" },
+            { question: "Wat is de beste vertaling voor 'to leave / to escape'?", options: ["Weggaan", "Vertrekken", "Er vandoor gaan"], answer: "Er vandoor gaan" },
+            { question: "Welke vrucht is 'Een ronde vrucht gevuld met talloze sappige, robijnrode zaadjes'?", options: ["De granaatappel", "De vijg", "De kaki"], answer: "De granaatappel" },
+            { question: "Wat betekent 'Wildvreemd'?", options: ["Heel oud", "Compleet onbekend", "Erg vreemd"], answer: "Compleet onbekend" },
+            { question: "Wat is de juiste lidwoord voor 'park'?", options: ["De", "Het"], answer: "Het" },
+            { question: "Welk woord is formeler, 'praten' of 'spreken'?", options: ["Praten", "Spreken"], answer: "Spreken" },
+            { question: "Welke groente is 'Een witte wortelgroente met een zoete, anijsachtige smaak'?", options: ["De venkel", "De pastinaak", "De prei"], answer: "De pastinaak" },
+            { question: "Wat is de correcte vertaling voor 'During the cooking'?", options: ["Tijdens dat ik kook", "Tijdens het koken"], answer: "Tijdens het koken" },
+            { question: "Wat is de correcte uitspraak voor 'succes'?", options: ["Succes", "Success"], answer: "Succes" },
+            { question: "Wat is 'The sewer' in het Nederlands?", options: ["Het water", "Een riool", "De sloot"], answer: "Een riool" },
+            { question: "Welk woord gebruik je om een uitgebreider verhaal te vertellen?", options: ["Zeggen", "Praten", "Vertellen"], answer: "Vertellen" },
+            { question: "Hoe zeg je dat je iets verloren bent (disappeared)?", options: ["Verloren", "Kwijt"], answer: "Kwijt" }
+        ];
+
+        let currentPage = 'notes';
+        let openSection = null;
+        let currentQuizQuestions = [];
+        let answers = {};
+        let submitted = false;
+
+        const icons = {
+            'Book': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M14 6H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/><path d="M22 6H12a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zM4 19.5V8a2.5 2.5 0 0 1 2.5-2.5h15"/><path d="M6 19.5v-15A2.5 2.5 0 0 1 8.5 2H22v20H8.5a2.5 2.5 0 0 1 0-5H22"/></svg>`,
+            'Lightbulb': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb"><path d="M15 14c.2-1 .7-1.7 1.5-2.2l-3.3-3.3C10.7 7.7 9 7 9 7s-1.7.7-3.3 2.5l-3.3-3.3C2 6.3 2 7 2 7l-1 1s.7 1.7 2.5 3.3c-.5.8-1.2 1.3-2.2 1.5l3.3 3.3c1.8-1.8 3.5-2.5 3.5-2.5s1.7.7 2.5 3.3l3.3-3.3c-.5-.8-1.2-1.3-2.2-1.5L9.5 12c.8.5 1.3 1.2 1.5 2H15z"/><path d="M12 2v6"/><path d="M12 18v4"/><path d="M4 12H0"/><path d="M24 12H20"/><path d="M22 18H18"/><path d="M6 18H2"/><path d="M18 6H14"/><path d="M10 6H6"/></svg>`,
+            'ChevronDown': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>`,
+            'RefreshCcw': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.76 2.76L3 7"/><path d="M24 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.76-2.76L0 17"/><path d="M10 20v-6H4"/><path d="M14 4v6h6"/></svg>`,
+            'CheckCircle': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-8.82"/><path d="M9 11l3 3L22 4"/></svg>`,
+            'XCircle': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`
+        };
+
+        const allQuizQuestions = [
+            { question: "Wat is de correcte manier om 'Together' te zeggen?", options: ["Zamen", "Samen", "Samenhang"], answer: "Samen" },
+            { question: "Welk woord betekent 'to experience'?", options: ["Geloven", "Beleven", "Gedachte"], answer: "Beleven" },
+            { question: "Wat betekent 'Wisselvallig weer'?", options: ["Zonnig en warm", "Veranderlijk weer", "Heel koud"], answer: "Veranderlijk weer" },
+            { question: "Hoe zeg je 'Good luck with the two flights.'?", options: ["Success met de twee vluchten.", "Succes met de twee vluchten."], answer: "Succes met de twee vluchten." },
+            { question: "Welke vrucht wordt beschreven als 'Een kleine, ovale vrucht met een harige schil en groen vruchtvlees'?", options: ["De papaja", "De kiwi", "De vijg"], answer: "De kiwi" },
+            { question: "Wat is de Nederlandse vertaling voor 'Apricot'?", options: ["De nectarine", "De pruim", "De abrikoos"], answer: "De abrikoos" },
+            { question: "Welk werkwoord gebruik je voor een informeel gesprek?", options: ["Spreken", "Zeggen", "Praten"], answer: "Praten" },
+            { question: "Kies de juiste zin: 'Last year I went to Vienna by train.'", options: ["Vorig jaar ik ben naar Wenen met de trein gegaan.", "Vorig jaar ben ik naar Wenen met de trein gegaan."], answer: "Vorig jaar ben ik naar Wenen met de trein gegaan." },
+            { question: "Wat is 'The map' in het Nederlands?", options: ["Het plan", "De plattegrond", "De locatie"], answer: "De plattegrond" },
+            { question: "Welke groente is een slasoort met een peperachtige smaak?", options: ["De radijs", "De pastinaak", "De rucola"], answer: "De rucola" },
+            { question: "Wat is de beste vertaling voor 'to leave / to escape'?", options: ["Weggaan", "Vertrekken", "Er vandoor gaan"], answer: "Er vandoor gaan" },
+            { question: "Welke vrucht is 'Een ronde vrucht gevuld met talloze sappige, robijnrode zaadjes'?", options: ["De granaatappel", "De vijg", "De kaki"], answer: "De granaatappel" },
+            { question: "Wat betekent 'Wildvreemd'?", options: ["Heel oud", "Compleet onbekend", "Erg vreemd"], answer: "Compleet onbekend" },
+            { question: "Wat is de juiste lidwoord voor 'park'?", options: ["De", "Het"], answer: "Het" },
+            { question: "Welk woord is formeler, 'praten' of 'spreken'?", options: ["Praten", "Spreken"], answer: "Spreken" },
+            { question: "Welke groente is 'Een witte wortelgroente met een zoete, anijsachtige smaak'?", options: ["De venkel", "De pastinaak", "De prei"], answer: "De pastinaak" },
+            { question: "Wat is de correcte vertaling voor 'During the cooking'?", options: ["Tijdens dat ik kook", "Tijdens het koken"], answer: "Tijdens het koken" },
+            { question: "Wat is de correcte uitspraak voor 'succes'?", options: ["Succes", "Success"], answer: "Succes" },
+            { question: "Wat is 'The sewer' in het Nederlands?", options: ["Het water", "Een riool", "De sloot"], answer: "Een riool" },
+            { question: "Welk woord gebruik je om een uitgebreider verhaal te vertellen?", options: ["Zeggen", "Praten", "Vertellen"], answer: "Vertellen" },
+            { question: "Hoe zeg je dat je iets verloren bent (disappeared)?", options: ["Verloren", "Kwijt"], answer: "Kwijt" }
+        ];
+
+        let currentPage = 'notes';
+        let openSection = null;
+        let currentQuizQuestions = [];
+        let answers = {};
+        let submitted = false;
+
+        const icons = {
+            'Book': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M14 6H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/><path d="M22 6H12a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zM4 19.5V8a2.5 2.5 0 0 1 2.5-2.5h15"/><path d="M6 19.5v-15A2.5 2.5 0 0 1 8.5 2H22v20H8.5a2.5 2.5 0 0 1 0-5H22"/></svg>`,
+            'Lightbulb': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb"><path d="M15 14c.2-1 .7-1.7 1.5-2.2l-3.3-3.3C10.7 7.7 9 7 9 7s-1.7.7-3.3 2.5l-3.3-3.3C2 6.3 2 7 2 7l-1 1s.7 1.7 2.5 3.3c-.5.8-1.2 1.3-2.2 1.5l3.3 3.3c1.8-1.8 3.5-2.5 3.5-2.5s1.7.7 2.5 3.3l3.3-3.3c-.5-.8-1.2-1.3-2.2-1.5L9.5 12c.8.5 1.3 1.2 1.5 2H15z"/><path d="M12 2v6"/><path d="M12 18v4"/><path d="M4 12H0"/><path d="M24 12H20"/><path d="M22 18H18"/><path d="M6 18H2"/><path d="M18 6H14"/><path d="M10 6H6"/></svg>`,
+            'ChevronDown': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>`,
+            'RefreshCcw': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.76 2.76L3 7"/><path d="M24 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.76-2.76L0 17"/><path d="M10 20v-6H4"/><path d="M14 4v6h6"/></svg>`,
+            'CheckCircle': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-8.82"/><path d="M9 11l3 3L22 4"/></svg>`,
+            'XCircle': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`
+        };
+
+        const allQuizQuestions = [
+            { question: "Wat is de correcte manier om 'Together' te zeggen?", options: ["Zamen", "Samen", "Samenhang"], answer: "Samen" },
+            { question: "Welk woord betekent 'to experience'?", options: ["Geloven", "Beleven", "Gedachte"], answer: "Beleven" },
+            { question: "Wat betekent 'Wisselvallig weer'?", options: ["Zonnig en warm", "Veranderlijk weer", "Heel koud"], answer: "Veranderlijk weer" },
+            { question: "Hoe zeg je 'Good luck with the two flights.'?", options: ["Success met de twee vluchten.", "Succes met de twee vluchten."], answer: "Succes met de twee vluchten." },
+            { question: "Welke vrucht wordt beschreven als 'Een kleine, ovale vrucht met een harige schil en groen vruchtvlees'?", options: ["De papaja", "De kiwi", "De vijg"], answer: "De kiwi" },
+            { question: "Wat is de Nederlandse vertaling voor 'Apricot'?", options: ["De nectarine", "De pruim", "De abrikoos"], answer: "De abrikoos" },
+            { question: "Welk werkwoord gebruik je voor een informeel gesprek?", options: ["Spreken", "Zeggen", "Praten"], answer: "Praten" },
+            { question: "Kies de juiste zin: 'Last year I went to Vienna by train.'", options: ["Vorig jaar ik ben naar Wenen met de trein gegaan.", "Vorig jaar ben ik naar Wenen met de trein gegaan."], answer: "Vorig jaar ben ik naar Wenen met de trein gegaan." },
+            { question: "Wat is 'The map' in het Nederlands?", options: ["Het plan", "De plattegrond", "De locatie"], answer: "De plattegrond" },
+            { question: "Welke groente is een slasoort met een peperachtige smaak?", options: ["De radijs", "De pastinaak", "De rucola"], answer: "De rucola" },
+            { question: "Wat is de beste vertaling voor 'to leave / to escape'?", options: ["Weggaan", "Vertrekken", "Er vandoor gaan"], answer: "Er vandoor gaan" },
+            { question: "Welke vrucht is 'Een ronde vrucht gevuld met talloze sappige, robijnrode zaadjes'?", options: ["De granaatappel", "De vijg", "De kaki"], answer: "De granaatappel" },
+            { question: "Wat betekent 'Wildvreemd'?", options: ["Heel oud", "Compleet onbekend", "Erg vreemd"], answer: "Compleet onbekend" },
+            { question: "Wat is de juiste lidwoord voor 'park'?", options: ["De", "Het"], answer: "Het" },
+            { question: "Welk woord is formeler, 'praten' of 'spreken'?", options: ["Praten", "Spreken"], answer: "Spreken" },
+            { question: "Welke groente is 'Een witte wortelgroente met een zoete, anijsachtige smaak'?", options: ["De venkel", "De pastinaak", "De prei"], answer: "De pastinaak" },
+            { question: "Wat is de correcte vertaling voor 'During the cooking'?", options: ["Tijdens dat ik kook", "Tijdens het koken"], answer: "Tijdens het koken" },
+            { question: "Wat is de correcte uitspraak voor 'succes'?", options: ["Succes", "Success"], answer: "Succes" },
+            { question: "Wat is 'The sewer' in het Nederlands?", options: ["Het water", "Een riool", "De sloot"], answer: "Een riool" },
+            { question: "Welk woord gebruik je om een uitgebreider verhaal te vertellen?", options: ["Zeggen", "Praten", "Vertellen"], answer: "Vertellen" },
+            { question: "Hoe zeg je dat je iets verloren bent (disappeared)?", options: ["Verloren", "Kwijt"], answer: "Kwijt" }
+        ];
+
+        let currentPage = 'notes';
+        let openSection = null;
+        let currentQuizQuestions = [];
+        let answers = {};
+        let submitted = false;
+
+        const icons = {
+            'Book': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M14 6H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/><path d="M22 6H12a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zM4 19.5V8a2.5 2.5 0 0 1 2.5-2.5h15"/><path d="M6 19.5v-15A2.5 2.5 0 0 1 8.5 2H22v20H8.5a2.5 2.5 0 0 1 0-5H22"/></svg>`,
+            'Lightbulb': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb"><path d="M15 14c.2-1 .7-1.7 1.5-2.2l-3.3-3.3C10.7 7.7 9 7 9 7s-1.7.7-3.3 2.5l-3.3-3.3C2 6.3 2 7 2 7l-1 1s.7 1.7 2.5 3.3c-.5.8-1.2 1.3-2.2 1.5l3.3 3.3c1.8-1.8 3.5-2.5 3.5-2.5s1.7.7 2.5 3.3l3.3-3.3c-.5-.8-1.2-1.3-2.2-1.5L9.5 12c.8.5 1.3 1.2 1.5 2H15z"/><path d="M12 2v6"/><path d="M12 18v4"/><path d="M4 12H0"/><path d="M24 12H20"/><path d="M22 18H18"/><path d="M6 18H2"/><path d="M18 6H14"/><path d="M10 6H6"/></svg>`,
+            'ChevronDown': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>`,
+            'RefreshCcw': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.76 2.76L3 7"/><path d="M24 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.76-2.76L0 17"/><path d="M10 20v-6H4"/><path d="M14 4v6h6"/></svg>`,
+            'CheckCircle': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-8.82"/><path d="M9 11l3 3L22 4"/></svg>`,
+            'XCircle': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`
+        };
+
+        const allQuizQuestions = [
+            { question: "Wat is de correcte manier om 'Together' te zeggen?", options: ["Zamen", "Samen", "Samenhang"], answer: "Samen" },
+            { question: "Welk woord betekent 'to experience'?", options: ["Geloven", "Beleven", "Gedachte"], answer: "Beleven" },
+            { question: "Wat betekent 'Wisselvallig weer'?", options: ["Zonnig en warm", "Veranderlijk weer", "Heel koud"], answer: "Veranderlijk weer" },
+            { question: "Hoe zeg je 'Good luck with the two flights.'?", options: ["Success met de twee vluchten.", "Succes met de twee vluchten."], answer: "Succes met de twee vluchten." },
+            { question: "Welke vrucht wordt beschreven als 'Een kleine, ovale vrucht met een harige schil en groen vruchtvlees'?", options: ["De papaja", "De kiwi", "De vijg"], answer: "De kiwi" },
+            { question: "Wat is de Nederlandse vertaling voor 'Apricot'?", options: ["De nectarine", "De pruim", "De abrikoos"], answer: "De abrikoos" },
+            { question: "Welk werkwoord gebruik je voor een informeel gesprek?", options: ["Spreken", "Zeggen", "Praten"], answer: "Praten" },
+            { question: "Kies de juiste zin: 'Last year I went to Vienna by train.'", options: ["Vorig jaar ik ben naar Wenen met de trein gegaan.", "Vorig jaar ben ik naar Wenen met de trein gegaan."], answer: "Vorig jaar ben ik naar Wenen met de trein gegaan." },
+            { question: "Wat is 'The map' in het Nederlands?", options: ["Het plan", "De plattegrond", "De locatie"], answer: "De plattegrond" },
+            { question: "Welke groente is een slasoort met een peperachtige smaak?", options: ["De radijs", "De pastinaak", "De rucola"], answer: "De rucola" },
+            { question: "Wat is de beste vertaling voor 'to leave / to escape'?", options: ["Weggaan", "Vertrekken", "Er vandoor gaan"], answer: "Er vandoor gaan" },
+            { question: "Welke vrucht is 'Een ronde vrucht gevuld met talloze sappige, robijnrode zaadjes'?", options: ["De granaatappel", "De vijg", "De kaki"], answer: "De granaatappel" },
+            { question: "Wat betekent 'Wildvreemd'?", options: ["Heel oud", "Compleet onbekend", "Erg vreemd"], answer: "Compleet onbekend" },
+            { question: "Wat is de juiste lidwoord voor 'park'?", options: ["De", "Het"], answer: "Het" },
+            { question: "Welk woord is formeler, 'praten' of 'spreken'?", options: ["Praten", "Spreken"], answer: "Spreken" },
+            { question: "Welke groente is 'Een witte wortelgroente met een zoete, anijsachtige smaak'?", options: ["De venkel", "De pastinaak", "De prei"], answer: "De pastinaak" },
+            { question: "Wat is de correcte vertaling voor 'During the cooking'?", options: ["Tijdens dat ik kook", "Tijdens het koken"], answer: "Tijdens het koken" },
+            { question: "Wat is de correcte uitspraak voor 'succes'?", options: ["Succes", "Success"], answer: "Succes" },
+            { question: "Wat is 'The sewer' in het Nederlands?", options: ["Het water", "Een riool", "De sloot"], answer: "Een riool" },
+            { question: "Welk woord gebruik je om een uitgebreider verhaal te vertellen?", options: ["Zeggen", "Praten", "Vertellen"], answer: "Vertellen" },
+            { question: "Hoe zeg je dat je iets verloren bent (disappeared)?", options: ["Verloren", "Kwijt"], answer: "Kwijt" }
+        ];
+        
+        let currentPage = 'notes';
+        let openSection = null;
+        let currentQuizQuestions = [];
+        let answers = {};
+        let submitted = false;
+
+        const icons = {
+            'Book': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M14 6H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/><path d="M22 6H12a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zM4 19.5V8a2.5 2.5 0 0 1 2.5-2.5h15"/><path d="M6 19.5v-15A2.5 2.5 0 0 1 8.5 2H22v20H8.5a2.5 2.5 0 0 1 0-5H22"/></svg>`,
+            'Lightbulb': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb"><path d="M15 14c.2-1 .7-1.7 1.5-2.2l-3.3-3.3C10.7 7.7 9 7 9 7s-1.7.7-3.3 2.5l-3.3-3.3C2 6.3 2 7 2 7l-1 1s.7 1.7 2.5 3.3c-.5.8-1.2 1.3-2.2 1.5l3.3 3.3c1.8-1.8 3.5-2.5 3.5-2.5s1.7.7 2.5 3.3l3.3-3.3c-.5-.8-1.2-1.3-2.2-1.5L9.5 12c.8.5 1.3 1.2 1.5 2H15z"/><path d="M12 2v6"/><path d="M12 18v4"/><path d="M4 12H0"/><path d="M24 12H20"/><path d="M22 18H18"/><path d="M6 18H2"/><path d="M18 6H14"/><path d="M10 6H6"/></svg>`,
+            'ChevronDown': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>`,
+            'RefreshCcw': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.76 2.76L3 7"/><path d="M24 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.76-2.76L0 17"/><path d="M10 20v-6H4"/><path d="M14 4v6h6"/></svg>`,
+            'CheckCircle': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-8.82"/><path d="M9 11l3 3L22 4"/></svg>`,
+            'XCircle': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`
+        };
+
+        const allQuizQuestions = [
+            { question: "Wat is de correcte manier om 'Together' te zeggen?", options: ["Zamen", "Samen", "Samenhang"], answer: "Samen" },
+            { question: "Welk woord betekent 'to experience'?", options: ["Geloven", "Beleven", "Gedachte"], answer: "Beleven" },
+            { question: "Wat betekent 'Wisselvallig weer'?", options: ["Zonnig en warm", "Veranderlijk weer", "Heel koud"], answer: "Veranderlijk weer" },
+            { question: "Hoe zeg je 'Good luck with the two flights.'?", options: ["Success met de twee vluchten.", "Succes met de twee vluchten."], answer: "Succes met de twee vluchten." },
+            { question: "Welke vrucht wordt beschreven als 'Een kleine, ovale vrucht met een harige schil en groen vruchtvlees'?", options: ["De papaja", "De kiwi", "De vijg"], answer: "De kiwi" },
+            { question: "Wat is de Nederlandse vertaling voor 'Apricot'?", options: ["De nectarine", "De pruim", "De abrikoos"], answer: "De abrikoos" },
+            { question: "Welk werkwoord gebruik je voor een informeel gesprek?", options: ["Spreken", "Zeggen", "Praten"], answer: "Praten" },
+            { question: "Kies de juiste zin: 'Last year I went to Vienna by train.'", options: ["Vorig jaar ik ben naar Wenen met de trein gegaan.", "Vorig jaar ben ik naar Wenen met de trein gegaan."], answer: "Vorig jaar ben ik naar Wenen met de trein gegaan." },
+            { question: "Wat is 'The map' in het Nederlands?", options: ["Het plan", "De plattegrond", "De locatie"], answer: "De plattegrond" },
+            { question: "Welke groente is een slasoort met een peperachtige smaak?", options: ["De radijs", "De pastinaak", "De rucola"], answer: "De rucola" },
+            { question: "Wat is de beste vertaling voor 'to leave / to escape'?", options: ["Weggaan", "Vertrekken", "Er vandoor gaan"], answer: "Er vandoor gaan" },
+            { question: "Welke vrucht is 'Een ronde vrucht gevuld met talloze sappige, robijnrode zaadjes'?", options: ["De granaatappel", "De vijg", "De kaki"], answer: "De granaatappel" },
+            { question: "Wat betekent 'Wildvreemd'?", options: ["Heel oud", "Compleet onbekend", "Erg vreemd"], answer: "Compleet onbekend" },
+            { question: "Wat is de juiste lidwoord voor 'park'?", options: ["De", "Het"], answer: "Het" },
+            { question: "Welk woord is formeler, 'praten' of 'spreken'?", options: ["Praten", "Spreken"], answer: "Spreken" },
+            { question: "Welke groente is 'Een witte wortelgroente met een zoete, anijsachtige smaak'?", options: ["De venkel", "De pastinaak", "De prei"], answer: "De pastinaak" },
+            { question: "Wat is de correcte vertaling voor 'During the cooking'?", options: ["Tijdens dat ik kook", "Tijdens het koken"], answer: "Tijdens het koken" },
+            { question: "Wat is de correcte uitspraak voor 'succes'?", options: ["Succes", "Success"], answer: "Succes" },
+            { question: "Wat is 'The sewer' in het Nederlands?", options: ["Het water", "Een riool", "De sloot"], answer: "Een riool" },
+            { question: "Welk woord gebruik je om een uitgebreider verhaal te vertellen?", options: ["Zeggen", "Praten", "Vertellen"], answer: "Vertellen" },
+            { question: "Hoe zeg je dat je iets verloren bent (disappeared)?", options: ["Verloren", "Kwijt"], answer: "Kwijt" }
+        ];
+
+        let currentPage = 'notes';
+        let openSection = null;
+        let currentQuizQuestions = [];
+        let answers = {};
+        let submitted = false;
+
+        const icons = {
+            'Book': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M14 6H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/><path d="M22 6H12a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zM4 19.5V8a2.5 2.5 0 0 1 2.5-2.5h15"/><path d="M6 19.5v-15A2.5 2.5 0 0 1 8.5 2H22v20H8.5a2.5 2.5 0 0 1 0-5H22"/></svg>`,
+            'Lightbulb': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb"><path d="M15 14c.2-1 .7-1.7 1.5-2.2l-3.3-3.3C10.7 7.7 9 7 9 7s-1.7.7-3.3 2.5l-3.3-3.3C2 6.3 2 7 2 7l-1 1s.7 1.7 2.5 3.3c-.5.8-1.2 1.3-2.2 1.5l3.3 3.3c1.8-1.8 3.5-2.5 3.5-2.5s1.7.7 2.5 3.3l3.3-3.3c-.5-.8-1.2-1.3-2.2-1.5L9.5 12c.8.5 1.3 1.2 1.5 2H15z"/><path d="M12 2v6"/><path d="M12 18v4"/><path d="M4 12H0"/><path d="M24 12H20"/><path d="M22 18H18"/><path d="M6 18H2"/><path d="M18 6H14"/><path d="M10 6H6"/></svg>`,
+            'ChevronDown': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>`,
+            'RefreshCcw': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.76 2.76L3 7"/><path d="M24 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.76-2.76L0 17"/><path d="M10 20v-6H4"/><path d="M14 4v6h6"/></svg>`,
+            'CheckCircle': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-8.82"/><path d="M9 11l3 3L22 4"/></svg>`,
+            'XCircle': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`
+        };
+
+        // Function to shuffle an array
+        const shuffleArray = (array) => {
+            let newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        };
+
+        const generateNewQuiz = () => {
+            const shuffledQuestions = shuffleArray(allQuizQuestions);
+            currentQuizQuestions = shuffledQuestions.slice(0, 6);
+            answers = {};
+            submitted = false;
+        };
+
+        const renderPage = () => {
+            const root = document.getElementById('root');
+            root.innerHTML = '';
+            
+            const mainContainer = document.createElement('div');
+            mainContainer.className = "flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased";
+            root.appendChild(mainContainer);
+
+            // Sidebar Navigation
+            const nav = document.createElement('nav');
+            nav.className = "fixed md:static inset-y-0 left-0 z-40 w-full md:w-64 bg-white dark:bg-gray-800 shadow-xl transition-transform duration-300 transform -translate-x-full md:translate-x-0";
+            nav.innerHTML = `
+                <div class="flex flex-col h-full p-4">
+                    <div class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-8 mt-4">
+                        Nederlands Leren
+                    </div>
+                    <button id="notes-btn" class="w-full flex items-center p-4 rounded-lg font-semibold transition-colors duration-200 mb-4 ${currentPage === 'notes' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'}">
+                        <span class="lucide mr-3 w-5 h-5">${icons['Book']}</span> Notities
+                    </button>
+                    <button id="quiz-btn" class="w-full flex items-center p-4 rounded-lg font-semibold transition-colors duration-200 mb-4 ${currentPage === 'quiz' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'}">
+                        <span class="lucide mr-3 w-5 h-5">${icons['Lightbulb']}</span> Quiz
+                    </button>
+                </div>
+            `;
+            mainContainer.appendChild(nav);
+
+            // Main content area
+            const main = document.createElement('main');
+            main.className = "flex-1 p-8 md:ml-64 transition-all duration-300";
+            mainContainer.appendChild(main);
+
+            if (currentPage === 'notes') {
+                main.innerHTML = NotesPage();
+                document.querySelectorAll('.toggle-section').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const sectionId = button.dataset.sectionId;
+                        if (openSection === sectionId) {
+                            openSection = null;
+                        } else {
+                            openSection = sectionId;
+                        }
+                        renderPage();
+                    });
+                });
+            } else if (currentPage === 'quiz') {
+                main.innerHTML = QuizPage();
+                
+                document.getElementById('generate-quiz-btn').addEventListener('click', () => {
+                    generateNewQuiz();
+                    renderPage();
+                });
+                
+                document.getElementById('quiz-form').addEventListener('click', (e) => {
+                    if(e.target.closest('input[type="radio"]')) {
+                        if (!submitted) {
+                            const input = e.target.closest('input[type="radio"]');
+                            const questionIndex = input.name.split('-')[1];
+                            answers = { ...answers, [questionIndex]: input.value };
+                            renderPage();
+                        }
+                    }
+                });
+
+                if (document.getElementById('submit-quiz-btn')) {
+                    document.getElementById('submit-quiz-btn').addEventListener('click', () => {
+                        submitted = true;
+                        renderPage();
+                    });
+                }
+                
+                if (document.getElementById('try-again-btn')) {
+                    document.getElementById('try-again-btn').addEventListener('click', () => {
+                        generateNewQuiz();
+                        renderPage();
+                    });
+                }
+            }
+
+            // Event listeners for navigation
+            document.getElementById('notes-btn').addEventListener('click', () => {
+                currentPage = 'notes';
+                renderPage();
+            });
+            document.getElementById('quiz-btn').addEventListener('click', () => {
+                currentPage = 'quiz';
+                renderPage();
+            });
+
+        };
+
+        const NotesPage = () => {
+            let html = `<div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg animate-fade-in-down w-full md:max-w-4xl mx-auto">
+                <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-6 border-b pb-2">Je Notities</h2>`;
+            notesData.forEach((day, dayIndex) => {
+                html += `<div class="mb-8">
+                    <h3 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-4">${day.title}</h3>`;
+                day.sections.forEach((section, sectionIndex) => {
+                    const sectionId = `${dayIndex}-${sectionIndex}`;
+                    const isOpen = openSection === sectionId;
+                    html += `<div class="mb-4">
+                        <button class="w-full flex justify-between items-center bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-100 p-4 rounded-lg font-semibold transition-colors duration-200 hover:bg-indigo-200 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 toggle-section" data-section-id="${sectionId}">
+                            <span>${section.heading}</span>
+                            <span class="lucide w-5 h-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}">${icons['ChevronDown']}</span>
+                        </button>
+                        <div class="${isOpen ? 'block' : 'hidden'} mt-2 p-4 bg-indigo-50 dark:bg-gray-700 rounded-lg shadow-inner animate-fade-in space-y-2">
+                            <ul class="space-y-2">`;
+                    section.items.forEach(item => {
+                        html += `<li class="py-1 px-2 text-gray-800 dark:text-gray-200 border-l-2 border-indigo-400 ml-2">${item}</li>`;
+                    });
+                    html += `</ul></div></div>`;
+                });
+                html += `</div>`;
+            });
+            html += `</div>`;
+            return html;
+        };
+
+        const QuizPage = () => {
+            let html = `<div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg animate-fade-in-down w-full md:max-w-4xl mx-auto">
+                <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-6 border-b pb-2">Oefen Quiz</h2>
+                <button id="generate-quiz-btn" class="w-full flex items-center justify-center space-x-2 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform duration-200 transform hover:scale-105 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 mb-6">
+                    <span class="lucide w-5 h-5">${icons['RefreshCcw']}</span>
+                    <span>Genereer Nieuwe Quiz</span>
+                </button>`;
+
+            if (currentQuizQuestions.length > 0) {
+                html += `<p class="text-gray-600 dark:text-gray-300 mb-6">Test je kennis! Selecteer je antwoorden en klik op 'Check Antwoorden'.</p>
+                <form id="quiz-form">`;
+                currentQuizQuestions.forEach((q, qIndex) => {
+                    let resultClass = '';
+                    let isCorrect = false;
+                    if (submitted) {
+                        isCorrect = answers[qIndex] === q.answer;
+                        if (answers[qIndex]) {
+                            resultClass = isCorrect ? 'bg-green-200 dark:bg-green-700 text-green-800' : 'bg-red-200 dark:bg-red-700 text-red-800';
+                        }
+                    }
+
+                    html += `<div class="mb-6 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700 transition-shadow duration-200 hover:shadow-md">
+                        <p class="font-semibold text-gray-800 dark:text-gray-100 mb-3">${qIndex + 1}. ${q.question}</p>
+                        <div class="space-y-2">`;
+                    q.options.forEach((option, oIndex) => {
+                        let optionResultClass = '';
+                        if (submitted) {
+                            if (option === answers[qIndex] && option !== q.answer) {
+                                optionResultClass = 'bg-red-200 dark:bg-red-700 text-red-800';
+                            } else if (option === q.answer) {
+                                optionResultClass = 'bg-green-200 dark:bg-green-700 text-green-800';
+                            }
+                        }
+
+                        html += `
+                        <label class="flex items-center p-3 rounded-md cursor-pointer transition-colors duration-200 ${optionResultClass || 'hover:bg-indigo-50 dark:hover:bg-gray-600'}">
+                            <input type="radio" name="question-${qIndex}" value="${option}" ${answers[qIndex] === option ? 'checked' : ''} ${submitted ? 'disabled' : ''} class="mr-3 text-indigo-600 focus:ring-indigo-500">
+                            <span class="text-gray-700 dark:text-gray-200">${option}</span>
+                            ${submitted && option === answers[qIndex] && (isCorrect ? `<span class="ml-auto lucide text-green-500 w-5 h-5">${icons['CheckCircle']}</span>` : `<span class="ml-auto lucide text-red-500 w-5 h-5">${icons['XCircle']}</span>`)}
+                            ${submitted && option !== answers[qIndex] && option === q.answer ? `<span class="ml-auto lucide text-green-500 w-5 h-5">${icons['CheckCircle']}</span>` : ''}
+                        </label>`;
+                    });
+                    html += `</div></div>`;
+                });
+                html += `</form>`;
+                if (!submitted) {
+                    html += `<button id="submit-quiz-btn" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform duration-200 transform hover:scale-105 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Check Antwoorden
+                    </button>`;
+                }
+                if (submitted) {
+                    html += `<div class="mt-6 p-4 bg-indigo-100 dark:bg-indigo-900 rounded-lg shadow-inner text-indigo-800 dark:text-indigo-200 text-center animate-fade-in-down">
+                        <h4 class="font-bold text-xl mb-2">Quiz voltooid!</h4>
+                        <p>Je hebt de quiz afgerond. Controleer de antwoorden hierboven.</p>
+                        <button id="try-again-btn" class="mt-4 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700">
+                            Opnieuw Proberen
+                        </button>
+                    </div>`;
+                }
+            } else {
+                html += `<p class="text-center text-gray-500 dark:text-gray-400">Klik op 'Genereer Nieuwe Quiz' om te beginnen.</p>`;
+            }
+            html += `</div>`;
+            return html;
+        };
+
+        window.onload = () => {
+            generateNewQuiz();
+            renderPage();
+        };
+
+    </script>
+</body>
+</html>
