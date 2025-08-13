@@ -1,0 +1,419 @@
+import React, { useState, useEffect } from 'react';
+import { ChevronDown, Book, Lightbulb, CheckCircle, XCircle, RefreshCcw } from 'lucide-react';
+
+// The main App component
+const App = () => {
+  const [currentPage, setCurrentPage] = useState('notes'); // 'notes', 'quiz'
+  const [openSection, setOpenSection] = useState(null);
+  const [currentQuizQuestions, setCurrentQuizQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+
+  // Utility function to convert simple markdown bold to HTML
+  const renderMarkdownToHtml = (markdown) => {
+    return markdown.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+  };
+
+  // Data for the notes, organized for the new format
+  const notesData = [
+    {
+      title: "Donderdag 7 Augustus",
+      sections: [
+        {
+          heading: "Vocabulaire & Uitdrukkingen",
+          items: [
+            "**Samen** - Together (let op: niet 'zamen')",
+            "**Gek denken** bestaat niet.",
+            "**Je bent gek.** - You are crazy.",
+            "**Een gek plan hebben / een rare gedachte hebben / iets raars doen.** - To have a crazy plan / a strange thought / do something strange.",
+            "**Geloven** - To believe",
+            "**Beleven = Meemaken** - To experience",
+            "**Verkouden** zijn - To have a cold",
+            "**Zelfs als ik me beter voel** - EVEN if I feel better"
+          ]
+        },
+        {
+          heading: "Tijd & Handelingen",
+          items: [
+            "**Tijdens het koken** - During the cooking",
+            "**Terwijl ik kook** (Correcte zin)",
+            "**Ik doe de afzuigkap aan.** - I turn on the extractor fan.",
+            "**Morgen ga ik het ervan nemen.** - Tomorrow I'm going to make the most of it.",
+            "**Ik vind het niet leuk om naar een begrafenis te gaan.** - I don't like to go to a funeral.",
+            "**Ik hou niet van begrafenissen.** - I don't like funerals.",
+            "**Wisselvallig weer** - Changeable weather",
+            "**Dat betekent** - That means",
+            "**Het wisselt continu.** - It changes constantly.",
+            "**Niet storen** - Do not disturb",
+            "**Er vandoor gaan** - To leave / to escape",
+            "**Een bezoek bij zijn oom** (of met) - A visit at his uncle's place (or with)",
+            "**Hij reed.** - He drove.",
+            "**Opgehaald.** - Picked up.",
+            "**Succes** met de twee vluchten. - Good luck with the two flights. (Let op: de correcte spelling is 'Succes'!)"
+          ]
+        },
+        {
+          heading: "Plaatsen & Objecten",
+          items: [
+            "**De steden** - Cities, **De stad** - City",
+            "**Het podium** - Stage",
+            "**De kroeg** - Cafe / Pub",
+            "**Waar niemand hen hoort, kent of stoort.** - Where no one hears, knows, or disturbs them.",
+            "**Een goed excuus.** - A good excuse.",
+            "**De abrikoos** - Apricot",
+            "**De pruim** - Plum",
+            "**De nectarine** - Nectarine",
+            "**De perzik** - Peach"
+          ]
+        },
+        {
+          heading: "Diversen",
+          items: [
+            "**Inschakelen** - To arrange and call someone",
+            "**Wildvreemd** - Completely unknown",
+            "**Even oud** - The same age",
+            "**Dit betekent** - This means",
+            "**Dat betekent** - That means"
+          ]
+        }
+      ]
+    },
+    {
+      title: "Woordenlijst (EXTRA)",
+      sections: [
+        {
+          heading: "Vruchten 🍎",
+          items: [
+            "**De mango:** Een zoete, sappige vrucht die vaak in tropische gerechten wordt gebruikt.",
+            "**De ananas:** Een grote, tropische vrucht met een zoete en frisse smaak.",
+            "**De kiwi:** Een kleine, ovale vrucht met een harige schil en groen vruchtvlees.",
+            "**De granaatappel:** Een ronde vrucht gevuld met talloze sappige, robijnrode zaadjes.",
+            "**De avocado:** Wordt vaak als groente gezien, maar is botanisch een vrucht.",
+            "**De vijg:** Een zachte, zoete vrucht met veel kleine pitjes.",
+            "**De lychee:** Een kleine, exotische vrucht met een roze schil en een zoete, sappige binnenkant.",
+            "**De papaja:** Een grote, tropische vrucht met oranje vlees en een zoete smaak.",
+            "**De passievrucht:** Een paarse vrucht met een harde schil en geleiachtig vruchtvlees vol met pitjes.",
+            "**De kaki:** Een oranje vrucht die lijkt op een tomaat en pas eetbaar is als hij zacht is.",
+            "**De braam:** Een kleine, donkere vrucht die aan een struik groeit.",
+            "**De bosbes:** Een kleine, blauwe bes met een lichtzoete smaak.",
+            "**De framboos:** Een delicate, rode bes."
+          ]
+        },
+        {
+          heading: "Groenten 🥦",
+          items: [
+            "**De artisjok:** Een plant waarvan de bloemknop wordt gegeten.",
+            "**De asperge:** Een lange, witte of groene groente die vooral in het voorjaar wordt gegeten.",
+            "**De aubergine:** Een paarse, eivormige vrucht die vaak in mediterrane gerechten wordt gebruikt.",
+            "**De courgette:** Een groene, langwerpige groente die vaak gebakken of gegrild wordt.",
+            "**De pastinaak:** Een witte wortelgroente met een zoete, anijsachtige smaak.",
+            "**De pompoen:** Een grote, oranje vrucht die vaak in de herfst wordt gegeten.",
+            "**De prei:** Een lange, groene en witte groente met een milde uiensmaak.",
+            "**De radijs:** Een kleine, rode en pittige knolgroente die vaak rauw wordt gegeten.",
+            "**De rucola:** Een slasoort met een peperachtige smaak.",
+            "**De venkel:** Een knolgroente met een sterke anijssmaak."
+          ]
+        }
+      ]
+    },
+    {
+      title: "Maandag 11 Augustus",
+      sections: [
+        {
+          heading: "Grammatica: 'praten', 'zeggen', 'vertellen', 'spreken'",
+          items: [
+            "**Praten:** Een uitwisseling van woorden, een gesprek voeren. Focus op de interactie, informeel. Bijvoorbeeld: 'We hebben een uur gepraat over de vakantie.'",
+            "**Zeggen:** Een specifieke uitspraak doen, een boodschap overbrengen. Focus op de inhoud van wat er gezegd wordt, vaak kort en direct. Bijvoorbeeld: 'Hij zei: 'Ik ga morgen naar huis.''",
+            "**Vertellen:** Het overbrengen van uitgebreidere informatie, zoals een verhaal of een gebeurtenis. Impliceert dat de informatie nieuw is voor de luisteraar. Bijvoorbeeld: 'Kun je me vertellen wat er gisteren is gebeurd?'",
+            "**Spreken:** Mondeling taal uiten. Kan verwijzen naar taalbeheersing of een formele toespraak. Formeler dan 'praten'. Bijvoorbeeld: 'Zij spreekt vloeiend Frans.'"
+          ]
+        },
+        {
+          heading: "Plaatsen & Geografie",
+          items: [
+            "**Het park** (Let op: HET lidwoord)",
+            "**In Libanon, is het...**",
+            "**Langs** - Along",
+            "**Zijn er veel meren.** - Are there many lakes.",
+            "**De plattegrond** - The map",
+            "**Een riool** - A sewer",
+            "**Het ongeluk was in het zuiden.** - The accident was in the south.",
+            "**De plek** - The place",
+            "**Groot bos.** - Large forest.",
+            "**Wenen** - Vienna"
+          ]
+        },
+        {
+          heading: "Tijd & Frequenties",
+          items: [
+            "**We begonnen om 2 uur.** - We started at 2 o’clock.",
+            "**Tijdens de rest van de dag.** - During the rest of the day.",
+            "**Niet zo vaak.** - Not SO often.",
+            "**Wanneer ik een ... koop.** (Let op de woordvolgorde!)",
+            "**Het voorjaar** - Lente (Spring)",
+            "**Het najaar** - Herfst (Autumn)",
+            "**Vorig jaar ben ik naar Wenen met de trein gegaan.** - Last year I went to Vienna by train."
+          ]
+        },
+        {
+          heading: "Mensen & Personen",
+          items: [
+            "**Hij** (neef) - He (cousin)",
+            "**Zij** (nicht) - She (cousin)",
+            "**Een passagier.** - A passenger.",
+            "**Ze waren in de war.** - They were confused.",
+            "**Kwijt** - Lost (disappeared)"
+          ]
+        },
+        {
+          heading: "Acties & Gebeurtenissen",
+          items: [
+            "**We hebben samen ontbeten.** - We had breakfast together.",
+            "**We ontbeten.** - We had breakfast.",
+            "**Stofzuigen.** - To vacuum.",
+            "**Vandaag heb ik in het park gechillt.** - Today I chilled IN the park. (Correcte zinsbouw)",
+            "**Na een hele sterke regenbui.** - After a very heavy rain shower.",
+            "**Bereiken.** - To reach.",
+            "**Was ontspoord.** - Had derailed.",
+            "**Er zijn 3 mensen omgekomen en 40 gewond geraakt.** - 3 people died and 40 were injured.",
+            "**Waardoor** - Because of what?",
+            "**Doordat** - Because.",
+            "**Zijn ... gebracht.** - Are ... brought.",
+            "**Weg te takelen.** - To tow away."
+          ]
+        },
+        {
+          heading: "Diversen & Grammatica",
+          items: [
+            "**Regels.** - Rules.",
+            "**Dit recept** (niet deze) - This recipe. (Let op: HET recept)",
+            "**Zelf gebruik ik het nooit.** - I myself never use it.",
+            "**Asperge** (Franse uitspraak).",
+            "**Asperger** (een ziekte; met de ‘g’)."
+          ]
+        }
+      ]
+    }
+  ];
+
+  // Full bank of quiz questions, now much larger and dynamic
+  const allQuizQuestions = [
+    { question: "Wat is de correcte manier om 'Together' te zeggen?", options: ["Zamen", "Samen", "Samenhang"], answer: "Samen" },
+    { question: "Welk woord betekent 'to experience'?", options: ["Geloven", "Beleven", "Gedachte"], answer: "Beleven" },
+    { question: "Wat betekent 'Wisselvallig weer'?", options: ["Zonnig en warm", "Veranderlijk weer", "Heel koud"], answer: "Veranderlijk weer" },
+    { question: "Hoe zeg je 'Good luck with the two flights.'?", options: ["Success met de twee vluchten.", "Succes met de twee vluchten."], answer: "Succes met de twee vluchten." },
+    { question: "Welke vrucht wordt beschreven als 'Een kleine, ovale vrucht met een harige schil en groen vruchtvlees'?", options: ["De papaja", "De kiwi", "De vijg"], answer: "De kiwi" },
+    { question: "Wat is de Nederlandse vertaling voor 'Apricot'?", options: ["De nectarine", "De pruim", "De abrikoos"], answer: "De abrikoos" },
+    { question: "Welk werkwoord gebruik je voor een informeel gesprek?", options: ["Spreken", "Zeggen", "Praten"], answer: "Praten" },
+    { question: "Kies de juiste zin: 'Last year I went to Vienna by train.'", options: ["Vorig jaar ik ben naar Wenen met de trein gegaan.", "Vorig jaar ben ik naar Wenen met de trein gegaan."], answer: "Vorig jaar ben ik naar Wenen met de trein gegaan." },
+    { question: "Wat is 'The map' in het Nederlands?", options: ["Het plan", "De plattegrond", "De locatie"], answer: "De plattegrond" },
+    { question: "Welke groente is een slasoort met een peperachtige smaak?", options: ["De radijs", "De pastinaak", "De rucola"], answer: "De rucola" },
+    { question: "Wat is de beste vertaling voor 'to leave / to escape'?", options: ["Weggaan", "Vertrekken", "Er vandoor gaan"], answer: "Er vandoor gaan" },
+    { question: "Welke vrucht is 'Een ronde vrucht gevuld met talloze sappige, robijnrode zaadjes'?", options: ["De granaatappel", "De vijg", "De kaki"], answer: "De granaatappel" },
+    { question: "Wat betekent 'Wildvreemd'?", options: ["Heel oud", "Compleet onbekend", "Erg vreemd"], answer: "Compleet onbekend" },
+    { question: "Wat is de juiste lidwoord voor 'park'?", options: ["De", "Het"], answer: "Het" },
+    { question: "Welk woord is formeler, 'praten' of 'spreken'?", options: ["Praten", "Spreken"], answer: "Spreken" },
+    { question: "Welke groente is 'Een witte wortelgroente met een zoete, anijsachtige smaak'?", options: ["De venkel", "De pastinaak", "De prei"], answer: "De pastinaak" },
+    { question: "Wat is de correcte vertaling voor 'During the cooking'?", options: ["Tijdens dat ik kook", "Tijdens het koken"], answer: "Tijdens het koken" },
+    { question: "Wat is de correcte uitspraak voor 'succes'?", options: ["Succes", "Success"], answer: "Succes" },
+    { question: "Wat is 'The sewer' in het Nederlands?", options: ["Het water", "Een riool", "De sloot"], answer: "Een riool" },
+    { question: "Welk woord gebruik je om een uitgebreider verhaal te vertellen?", options: ["Zeggen", "Praten", "Vertellen"], answer: "Vertellen" },
+    { question: "Hoe zeg je dat je iets verloren bent (disappeared)?", options: ["Verloren", "Kwijt"], answer: "Kwijt" }
+  ];
+
+  // Function to shuffle an array
+  const shuffleArray = (array) => {
+    let newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+
+  // Function to generate a new quiz
+  const generateNewQuiz = () => {
+    const shuffledQuestions = shuffleArray(allQuizQuestions);
+    const newQuizQuestions = shuffledQuestions.slice(0, 6);
+    setCurrentQuizQuestions(newQuizQuestions);
+    setAnswers({});
+    setSubmitted(false);
+  };
+
+  // Generate a quiz when the component mounts
+  useEffect(() => {
+    generateNewQuiz();
+  }, []);
+
+  // Component to render the collapsible notes
+  const NotesPage = () => (
+    <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg animate-fade-in-down w-full md:max-w-4xl mx-auto">
+      <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-6 border-b pb-2">Je Notities</h2>
+      {notesData.map((day, dayIndex) => (
+        <div key={dayIndex} className="mb-8">
+          <h3 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-4">{day.title}</h3>
+          {day.sections.map((section, sectionIndex) => (
+            <div key={sectionIndex} className="mb-4">
+              <button
+                onClick={() => setOpenSection(openSection === `${dayIndex}-${sectionIndex}` ? null : `${dayIndex}-${sectionIndex}`)}
+                className="w-full flex justify-between items-center bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-100 p-4 rounded-lg font-semibold transition-colors duration-200 hover:bg-indigo-200 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              >
+                <span>{section.heading}</span>
+                <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${openSection === `${dayIndex}-${sectionIndex}` ? 'rotate-180' : ''}`} />
+              </button>
+              {openSection === `${dayIndex}-${sectionIndex}` && (
+                <ul className="mt-2 p-4 bg-indigo-50 dark:bg-gray-700 rounded-lg shadow-inner animate-fade-in space-y-2">
+                  {section.items.map((item, itemIndex) => (
+                    <li key={itemIndex} className="py-1 px-2 text-gray-800 dark:text-gray-200 border-l-2 border-indigo-400 ml-2" dangerouslySetInnerHTML={{ __html: renderMarkdownToHtml(item) }}></li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+
+  // Component for the quiz
+  const QuizPage = () => {
+    const handleAnswerChange = (questionIndex, option) => {
+      setAnswers({ ...answers, [questionIndex]: option });
+    };
+
+    const handleSubmit = () => {
+      setSubmitted(true);
+    };
+
+    const getResultColor = (questionIndex, option) => {
+      if (!submitted) return '';
+      if (answers[questionIndex] === option) {
+        return answers[questionIndex] === currentQuizQuestions[questionIndex].answer ? 'bg-green-200 dark:bg-green-700 text-green-800' : 'bg-red-200 dark:bg-red-700 text-red-800';
+      }
+      if (option === currentQuizQuestions[questionIndex].answer) {
+        return 'bg-green-200 dark:bg-green-700 text-green-800';
+      }
+      return '';
+    };
+
+    return (
+      <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg animate-fade-in-down w-full md:max-w-4xl mx-auto">
+        <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-6 border-b pb-2">Oefen Quiz</h2>
+        <button
+          onClick={generateNewQuiz}
+          className="w-full flex items-center justify-center space-x-2 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform duration-200 transform hover:scale-105 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 mb-6"
+        >
+          <RefreshCcw className="w-5 h-5" />
+          <span>Genereer Nieuwe Quiz</span>
+        </button>
+
+        {currentQuizQuestions.length > 0 ? (
+          <>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">Test je kennis! Selecteer je antwoorden en klik op 'Check Antwoorden'.</p>
+            {currentQuizQuestions.map((q, qIndex) => (
+              <div key={qIndex} className="mb-6 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700 transition-shadow duration-200 hover:shadow-md">
+                <p className="font-semibold text-gray-800 dark:text-gray-100 mb-3">{qIndex + 1}. {q.question}</p>
+                <div className="space-y-2">
+                  {q.options.map((option, oIndex) => (
+                    <div
+                      key={oIndex}
+                      className={`flex items-center p-3 rounded-md cursor-pointer transition-colors duration-200 ${getResultColor(qIndex, option) || 'hover:bg-indigo-50 dark:hover:bg-gray-600'}`}
+                      onClick={() => !submitted && handleAnswerChange(qIndex, option)}
+                    >
+                      <input
+                        type="radio"
+                        name={`question-${qIndex}`}
+                        value={option}
+                        checked={answers[qIndex] === option}
+                        onChange={() => handleAnswerChange(qIndex, option)}
+                        disabled={submitted}
+                        className="mr-3 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-gray-700 dark:text-gray-200">{option}</span>
+                      {submitted && answers[qIndex] === option && (answers[qIndex] === q.answer ? <CheckCircle className="ml-auto text-green-500 w-5 h-5" /> : <XCircle className="ml-auto text-red-500 w-5 h-5" />)}
+                      {submitted && answers[qIndex] !== option && option === q.answer && <CheckCircle className="ml-auto text-green-500 w-5 h-5" />}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {!submitted && (
+              <button
+                onClick={handleSubmit}
+                className="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform duration-200 transform hover:scale-105 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              >
+                Check Antwoorden
+              </button>
+            )}
+            {submitted && (
+              <div className="mt-6 p-4 bg-indigo-100 dark:bg-indigo-900 rounded-lg shadow-inner text-indigo-800 dark:text-indigo-200 text-center animate-fade-in-down">
+                <h4 className="font-bold text-xl mb-2">Quiz voltooid!</h4>
+                <p>Je hebt de quiz afgerond. Controleer de antwoorden hierboven.</p>
+                <button
+                  onClick={generateNewQuiz}
+                  className="mt-4 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700"
+                >
+                  Opnieuw Proberen
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-center text-gray-500 dark:text-gray-400">Klik op 'Genereer Nieuwe Quiz' om te beginnen.</p>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .animate-fade-in-down {
+          animation: fadeInDown 0.5s ease-in-out;
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeInDown {
+          0% { opacity: 0; transform: translateY(-20px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+      `}</style>
+
+      {/* Sidebar Navigation */}
+      <nav className="fixed md:static inset-y-0 left-0 z-40 w-full md:w-64 bg-white dark:bg-gray-800 shadow-xl transition-transform duration-300 transform -translate-x-full md:translate-x-0">
+        <div className="flex flex-col h-full p-4">
+          <div className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-8 mt-4">
+            Nederlands Leren
+          </div>
+          <button
+            onClick={() => setCurrentPage('notes')}
+            className={`w-full flex items-center p-4 rounded-lg font-semibold transition-colors duration-200 mb-4 ${currentPage === 'notes' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'}`}
+          >
+            <Book className="mr-3 w-5 h-5" /> Notities
+          </button>
+          <button
+            onClick={() => setCurrentPage('quiz')}
+            className={`w-full flex items-center p-4 rounded-lg font-semibold transition-colors duration-200 mb-4 ${currentPage === 'quiz' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'}`}
+          >
+            <Lightbulb className="mr-3 w-5 h-5" /> Quiz
+          </button>
+        </div>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="flex-1 p-8 md:ml-64 transition-all duration-300">
+        {currentPage === 'notes' && <NotesPage />}
+        {currentPage === 'quiz' && <QuizPage />}
+      </main>
+    </div>
+  );
+};
+
+export default App;
